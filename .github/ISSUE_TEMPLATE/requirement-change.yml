@@ -1,0 +1,40 @@
+name: Requirement change
+description: Propose new or changed product behavior.
+title: "[Requirement]: "
+labels: ["type: requirement", "area: product"]
+body:
+  - type: input
+    id: requirement_ids
+    attributes:
+      label: Requirement IDs
+      description: List existing IDs or write NEW when proposing a new requirement.
+      placeholder: "BKG-002, PAY-001"
+    validations:
+      required: true
+  - type: textarea
+    id: user_problem
+    attributes:
+      label: User or business problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: State observable outcomes, boundaries, and errors.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Cover API, data, UI, compatibility, security, and testing impact.
+    validations:
+      required: true
+

@@ -1,0 +1,24 @@
+name: Task
+description: Track bounded documentation, infrastructure, or maintenance work.
+title: "[Task]: "
+labels: ["type: task"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Completion evidence
+      description: What observable evidence will show that this task is complete?
+    validations:
+      required: true
+  - type: input
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: "Issue numbers or None"
+

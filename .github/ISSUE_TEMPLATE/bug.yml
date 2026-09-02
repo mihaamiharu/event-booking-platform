@@ -1,0 +1,49 @@
+name: Bug report
+description: Report observable behavior that conflicts with an accepted requirement.
+title: "[Bug]: "
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: input
+    id: requirement
+    attributes:
+      label: Related requirement
+      placeholder: "BKG-003"
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions and test data
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and environment
+      description: Include version, browser, API response, screenshots, logs, or other relevant evidence.
+    validations:
+      required: true
+

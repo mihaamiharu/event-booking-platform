@@ -1,0 +1,33 @@
+name: Feature implementation
+description: Track implementation of accepted behavior.
+title: "[Feature]: "
+labels: ["type: feature"]
+body:
+  - type: input
+    id: requirement_ids
+    attributes:
+      label: Requirement IDs
+      placeholder: "EVT-001, EVT-002"
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Intended outcome
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Identify included work and explicit exclusions.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: Describe the evidence required to consider the feature complete.
+    validations:
+      required: true
+

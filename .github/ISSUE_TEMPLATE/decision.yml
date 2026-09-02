@@ -1,0 +1,41 @@
+name: Decision proposal
+description: Propose a material product or technical decision.
+title: "[Decision]: "
+labels: ["type: decision", "status: needs-decision"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What problem, constraint, or opportunity requires a decision?
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: List credible options and their tradeoffs.
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommendation
+      description: Which option should be selected, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences and risks
+      description: Describe benefits, costs, risks, and reversibility.
+    validations:
+      required: true
+  - type: input
+    id: documents
+    attributes:
+      label: Documents affected
+      placeholder: "PRD, TDD, API, ERD, ADR"
+    validations:
+      required: true
+

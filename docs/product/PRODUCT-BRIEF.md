@@ -1,8 +1,8 @@
 # Product Brief
 
-**Working name:** Event Booking Platform  
-**Status:** Draft  
-**Version:** 0.1  
+**Working name:** Event Booking Platform
+**Status:** Draft
+**Version:** 0.2
 **Initial release:** R1 — Attendee Booking
 
 ## Product statement
@@ -45,6 +45,16 @@ An attendee needs to understand what an event offers, determine whether a suitab
 
 Given a published event with an available session, an attendee can reserve tickets through simulated payment and later retrieve an accurate booking record.
 
+## R1 delivery decisions
+
+- The public brand remains undecided; “Event Booking Platform” is the working name.
+- R1 uses deterministic seeded attendee accounts rather than self-registration.
+- A learner workspace expires after seven days without authenticated activity.
+- Payment uses explicit success and decline simulation codes, never card data.
+- The first public deployment uses a free `workers.dev` hostname.
+
+The rationale and consequences are recorded in [Product Decisions](DECISIONS.md).
+
 ## Measures of completion
 
 - The primary attendee journey works against a deployed Cloudflare environment.
@@ -52,4 +62,3 @@ Given a published event with an available session, an attendee can reserve ticke
 - Public UI and API contracts agree with persisted D1 state.
 - Seed and reset operations create deterministic learner workspaces.
 - The product can be used independently of any course or learning platform.
-

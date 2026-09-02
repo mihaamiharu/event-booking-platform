@@ -24,4 +24,4 @@ Architecture Decision Records explain material choices that affect product scope
 | [0001](ADR-0001-standalone-system-under-test.md) | Maintain a standalone system under test | Accepted |
 | [0002](ADR-0002-cloudflare-free-platform.md) | Use Cloudflare free-plan services without a VPS | Accepted |
 | [0003](ADR-0003-versioned-documents-and-issues.md) | Use versioned documents as truth and issues as workflow | Accepted |
-
+| [0004](ADR-0004-deterministic-learner-workspaces.md) | Use deterministic, expiring learner workspaces | Accepted |

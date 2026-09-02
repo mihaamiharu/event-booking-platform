@@ -27,7 +27,12 @@ See:
 
 - [Product brief](docs/product/PRODUCT-BRIEF.md)
 - [Product requirements](docs/product/PRD.md)
+- [Product decisions](docs/product/DECISIONS.md)
+- [Business rules](docs/product/BUSINESS-RULES.md)
+- [User flows](docs/product/USER-FLOWS.md)
+- [Domain glossary](docs/product/GLOSSARY.md)
 - [Release 1 exclusions](docs/product/OUT-OF-SCOPE.md)
+- [Release 1 definition](docs/releases/RELEASE-001.md)
 - [Technical design](docs/engineering/TDD.md)
 - [Decision records](docs/adr/README.md)
 
@@ -42,4 +47,3 @@ See:
 ## Repository status
 
 No application code exists yet. The next milestone is approval of the Release 1 product and technical specifications.
-

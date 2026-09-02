@@ -1,8 +1,8 @@
 # Product Brief
 
 **Working name:** Event Booking Platform
-**Status:** Draft
-**Version:** 0.2
+**Status:** Ready for review
+**Version:** 0.3
 **Initial release:** R1 — Attendee Booking
 
 ## Product statement
@@ -49,9 +49,12 @@ Given a published event with an available session, an attendee can reserve ticke
 
 - The public brand remains undecided; “Event Booking Platform” is the working name.
 - R1 uses deterministic seeded attendee accounts rather than self-registration.
-- A learner workspace expires after seven days without authenticated activity.
+- A learner workspace expires after seven days without successful dynamic activity from its valid signed context.
 - Payment uses explicit success and decline simulation codes, never card data.
 - The first public deployment uses a free `workers.dev` hostname.
+- R1 prices are integer Indonesian rupiah values displayed as IDR.
+- R1 event and session times use `Asia/Jakarta` and display WIB.
+- R1 user-facing content is English only.
 
 The rationale and consequences are recorded in [Product Decisions](DECISIONS.md).
 
@@ -62,3 +65,13 @@ The rationale and consequences are recorded in [Product Decisions](DECISIONS.md)
 - Public UI and API contracts agree with persisted D1 state.
 - Seed and reset operations create deterministic learner workspaces.
 - The product can be used independently of any course or learning platform.
+
+## R1 success signals
+
+- A first-time visitor can reach a published event without account registration.
+- A seeded attendee can complete the primary booking flow without facilitator intervention.
+- The same valid checkout retry cannot create a duplicate booking.
+- Capacity, booking, and payment outcomes agree across the UI, API, and persisted state.
+- Reset returns the active workspace to the documented seed state.
+- No product operation exposes another workspace's mutable data.
+- The public deployment remains within Cloudflare's free-plan limits under the documented usage controls.

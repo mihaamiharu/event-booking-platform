@@ -18,6 +18,10 @@ The durable record of an attendee's confirmed reservation for one ticket type, s
 
 A unique, human-readable identifier shown to an attendee and safe to use in support or operational communication. It is not proof of authorization.
 
+## Currency
+
+R1 uses Indonesian rupiah, identified as IDR. Authoritative amounts are non-negative integers with no fractional digits.
+
 ## Capacity
 
 The maximum number of attendees that one session may accept across all of its ticket types.
@@ -33,6 +37,10 @@ A client-generated value that allows a checkout request to be retried without cr
 ## Learner workspace
 
 An isolated, resettable collection of mutable target-product data. A workspace is an operational boundary for the public training environment, not a TestingWithEkki account.
+
+## Workspace activity
+
+A successful dynamic API request associated with a valid signed learner-workspace context. An attendee session is not required. Static asset requests and rejected API requests do not count.
 
 ## Payment simulation code
 
@@ -50,9 +58,17 @@ Session capacity minus the quantity held by confirmed bookings in the same works
 
 The documented accounts, events, sessions, ticket types, and mutable state created when a learner workspace is provisioned or reset.
 
+## Seed reference time
+
+The UTC instant stored when a workspace is provisioned or reset. Relative seed dates are derived from it using Asia/Jakarta calendar rules.
+
 ## Session
 
 A scheduled occurrence of an event with its own start, end, venue, sales window, status, and capacity.
+
+## Sales window
+
+The server-authoritative interval during which an otherwise eligible session accepts checkout. The opening instant is included and the closing instant is excluded.
 
 ## Ticket type
 

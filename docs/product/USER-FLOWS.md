@@ -1,6 +1,6 @@
 # Release 1 User Flows
 
-**Status:** Draft
+**Status:** Ready for review
 **Release:** R1 — Attendee Booking
 
 ## UF-001 — Enter a learner workspace

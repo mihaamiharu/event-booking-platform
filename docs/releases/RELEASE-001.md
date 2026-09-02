@@ -1,6 +1,6 @@
 # R1 — Attendee Booking
 
-**Status:** Discovery
+**Status:** Ready for discovery review
 **Target infrastructure:** Cloudflare free plans
 **Public hostname:** `workers.dev` hostname to be assigned
 
@@ -15,7 +15,7 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 - `BKG-001` through `BKG-005`
 - `PAY-001`
 - `WSP-001` through `WSP-004`
-- `NFR-001` through `NFR-005`
+- `NFR-001` through `NFR-009`
 
 ## Primary user flows
 
@@ -31,8 +31,8 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 ### Product gate
 
 - R1 requirements and business rules are approved.
-- Currency and time-zone decisions are resolved.
-- Seed accounts and events are documented.
+- IDR, Asia/Jakarta, and English-only R1 decisions are reflected across the product documents.
+- Seed accounts, events, sessions, tickets, existing bookings, and reset expectations are documented.
 - All user-visible errors have stable product meaning.
 
 ### Engineering gate
@@ -55,8 +55,21 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 
 - D1 concurrency guarantees must be validated before choosing the capacity-update implementation.
 - Workspace provisioning and reset could consume free-plan writes if abused.
-- Time-zone and sales-window ambiguity could create boundary defects until the policy is accepted.
+- Relative seed-date calculation must agree across local, preview, and production environments.
 - The public `workers.dev` name cannot be finalized before the Worker name is selected.
+
+## Discovery evidence
+
+- [Product requirements](../product/PRD.md)
+- [Product decisions](../product/DECISIONS.md)
+- [Business rules](../product/BUSINESS-RULES.md)
+- [User flows](../product/USER-FLOWS.md)
+- [Roles and permissions](../product/ROLES-AND-PERMISSIONS.md)
+- [Information architecture](../product/INFORMATION-ARCHITECTURE.md)
+- [Error catalog](../product/ERROR-CATALOG.md)
+- [Seed data](../testing/TEST-DATA.md)
+- [Traceability](../product/TRACEABILITY.md)
+- [Risks and assumptions](../product/RISKS-AND-ASSUMPTIONS.md)
 
 ## Explicit exclusions
 

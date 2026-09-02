@@ -26,7 +26,7 @@ This log records accepted product-discovery decisions. Requirements and business
 ## PD-003 — Expire workspaces after seven inactive days
 
 **Status:** Accepted
-**Decision:** Expire a learner workspace after seven consecutive days without successful authenticated API activity.
+**Decision:** Expire a learner workspace after seven consecutive days without a successful API request associated with its valid signed workspace context. An attendee session is not required, and static asset requests do not count.
 
 **Rationale:** Seven days supports multi-session learning while bounding D1 storage and abandoned mutable data.
 
@@ -50,10 +50,33 @@ This log records accepted product-discovery decisions. Requirements and business
 
 **Consequences:** Documentation must not promise a permanent public URL until the Worker name is chosen. A branded hostname is deferred.
 
-## Decisions still required
+## PD-006 — Use IDR without fractional amounts
 
-| Question | Why it matters | Blocking point |
-| --- | --- | --- |
-| R1 currency | Determines price representation, formatting, seed data, and assertions | ERD and API approval |
-| Time-zone policy | Determines event/session storage, display, and boundary behavior | Event requirements approval |
-| Public product name | Determines final user-facing identity and custom hostname | General availability |
+**Status:** Accepted
+**Decision:** R1 stores and calculates prices as integer Indonesian rupiah amounts. User-facing totals identify the currency as IDR and use Indonesian thousands grouping without fractional digits.
+
+**Rationale:** One currency removes conversion and rounding ambiguity from the first booking release while remaining realistic for the initial Jakarta event catalog.
+
+**Consequences:** R1 seed data, APIs, persistence, and assertions use integer rupiah. Multi-currency, tax, fees, and conversion require later requirements.
+
+## PD-007 — Use Asia/Jakarta for all R1 event time
+
+**Status:** Accepted
+**Decision:** All R1 venues and event sessions use the IANA time zone `Asia/Jakarta`. User-facing event times display WIB. Persisted instants use UTC and retain the product time-zone identifier where needed to reproduce display behavior.
+
+**Rationale:** One named time zone makes date boundaries explicit without introducing multi-zone conversion in the first release.
+
+**Consequences:** R1 seed venues are in Jakarta. Venue-specific time zones and daylight-saving behavior are deferred change scenarios.
+
+## PD-008 — Use English-only product content in R1
+
+**Status:** Accepted
+**Decision:** R1 navigation, forms, event content, errors, and confirmations are English only.
+
+**Rationale:** Localization would multiply content and UI states before the primary booking contract is stable.
+
+**Consequences:** Text remains externalizable and must not be used as a database identifier. Indonesian localization becomes a later product change rather than hidden R1 scope.
+
+## Deferred non-blocking decision
+
+The public product name remains intentionally deferred until before general availability. The working name is sufficient for product and engineering design.

@@ -1,8 +1,8 @@
 # Technical Design Document
 
 **Release:** R1 — Attendee Booking
-**Status:** Draft
-**Version:** 0.2
+**Status:** Ready for review
+**Version:** 0.3
 
 ## 1. Design goals
 
@@ -50,7 +50,7 @@ Every mutable business entity includes a trusted `workspace_id` derived from the
 
 Shared reference content may be global. Inventory, accounts, sessions, bookings, and scenario state are workspace-scoped in R1 to keep exercises deterministic.
 
-An R1 workspace expires after seven days without successful authenticated API activity. A bounded scheduled cleanup marks or removes expired workspace data. Static asset requests do not extend the lifetime.
+An R1 workspace expires after seven days without a successful API request associated with its valid signed workspace context. An attendee session is not required. A bounded scheduled cleanup marks or removes expired workspace data. Static asset requests and rejected API requests do not extend the lifetime.
 
 ## 5. Booking consistency
 
@@ -72,6 +72,8 @@ Checkout uses an idempotency key and a logical transaction or D1 batch so that b
 R1 provisions deterministic attendee accounts with each workspace. It does not support public registration, email verification, or password recovery.
 
 Payment is an internal deterministic simulator. It accepts only documented scenario codes and never requests card-shaped financial data. Payment success and decline are ordinary application outcomes persisted with the booking attempt where required by the final data design.
+
+R1 monetary values are integer IDR amounts. R1 domain instants are persisted in UTC and displayed using the IANA time zone `Asia/Jakarta` with a WIB label. These contracts must be preserved through the database and API designs.
 
 ## 8. Environments
 
@@ -103,5 +105,4 @@ Worker logs include request correlation ID, route, status, duration, workspace p
 - Authentication implementation
 - ORM versus direct D1 statements
 - Preview-environment database strategy
-- Product-wide currency and time-zone policy
 - Branded custom hostname

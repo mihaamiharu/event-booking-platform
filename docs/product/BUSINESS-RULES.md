@@ -1,6 +1,6 @@
 # Release 1 Business Rules
 
-**Status:** Draft
+**Status:** Ready for review
 **Release:** R1 — Attendee Booking
 
 These rules refine the PRD without replacing its requirements. Each rule must remain traceable to implementation and verification evidence.
@@ -35,6 +35,20 @@ A session is bookable only when all of the following are true:
 
 All ticket types belonging to one session consume the same session capacity. Ticket-type availability cannot make total confirmed quantity exceed session capacity.
 
+### BR-EVT-004 — Event status vocabulary
+
+R1 seed and read behavior recognize:
+
+- `DRAFT`: not publicly discoverable;
+- `PUBLISHED`: eligible for public discovery when a future session exists; and
+- `CANCELLED`: not publicly discoverable or bookable.
+
+R1 does not expose a status-changing organizer operation.
+
+### BR-EVT-005 — Session status vocabulary
+
+R1 recognizes `SCHEDULED`, `CANCELLED`, and `COMPLETED`. Only `SCHEDULED` can be bookable, subject to time, sales-window, and capacity rules.
+
 ## Ticket selection and price
 
 ### BR-TKT-001 — Quantity boundary
@@ -43,7 +57,9 @@ One R1 checkout accepts one ticket type and an integer quantity from 1 through 5
 
 ### BR-TKT-002 — Authoritative total
 
-The server calculates subtotal as authoritative unit price multiplied by quantity. R1 has no tax, booking fee, discount, or currency conversion.
+The server calculates subtotal as authoritative unit price multiplied by quantity. Prices are non-negative integer Indonesian rupiah values. R1 has no fractional amount, tax, booking fee, discount, or currency conversion.
+
+User-facing amounts identify IDR and use Indonesian thousands grouping with no decimal digits. Formatting never changes the authoritative stored integer.
 
 ### BR-TKT-003 — Immutable booking price
 
@@ -71,6 +87,10 @@ The same attendee repeating checkout with the same idempotency key and equivalen
 
 An authenticated attendee may list or retrieve only bookings owned by their attendee identity and learner workspace.
 
+### BR-BKG-006 — R1 booking state
+
+R1 creates a booking only when it can immediately become `CONFIRMED`. Decline and validation outcomes do not create pending or failed booking records. Booking cancellation is not available.
+
 ## Payment simulation
 
 ### BR-PAY-001 — Success
@@ -85,11 +105,15 @@ An authenticated attendee may list or retrieve only bookings owned by their atte
 
 Any other payment simulation value produces an input-validation error rather than a payment decline.
 
+### BR-PAY-004 — Payment outcome vocabulary
+
+The simulator produces `SUCCEEDED` or `DECLINED`. A validation error occurs before a payment outcome exists. The simulator input itself is not persisted.
+
 ## Workspace lifecycle
 
 ### BR-WSP-001 — Inactivity
 
-A workspace is inactive when seven consecutive 24-hour periods pass without a successful authenticated API request.
+A workspace is inactive when seven consecutive 24-hour periods pass without a successful API request associated with its valid signed workspace context. An attendee session is not required. Static asset requests and rejected requests do not update activity.
 
 ### BR-WSP-002 — Expiration
 
@@ -99,8 +123,29 @@ Expired workspace state is not restored. A returning visitor receives or creates
 
 Reset replaces the active workspace's mutable data with the documented seed state and does not change any other workspace.
 
-## Unresolved business rules
+## Time and sales windows
 
-- The R1 currency and its formatting rules.
-- Whether session times use one platform time zone or each venue's named time zone.
-- Exact event and session sales-window boundary semantics at the closing instant.
+### BR-TIM-001 — R1 time zone
+
+Every R1 venue, event, and session uses the IANA time zone `Asia/Jakarta`. User-facing event times display the `WIB` zone label. Persisted instants use UTC.
+
+### BR-TIM-002 — Server-authoritative current time
+
+The server's current time determines whether a sales window is open and whether a session is in the future. A client clock cannot make a session bookable.
+
+### BR-TIM-003 — Sales-window boundary
+
+A sales window is open when `sales_open_at <= now < sales_close_at` and `now < session_start_at`. The opening instant is included; the closing and session-start instants are excluded.
+
+## Language
+
+### BR-LNG-001 — R1 language
+
+R1 user-facing content is English only. Human-readable text is not used as a persistent identifier or authorization input.
+
+## Rules deferred beyond R1
+
+- Localization and language selection.
+- Multi-currency, conversion, tax, and booking fees.
+- Venue-specific time zones and daylight-saving transitions.
+- Cancellation, refunds, temporary ticket holds, and waitlists.

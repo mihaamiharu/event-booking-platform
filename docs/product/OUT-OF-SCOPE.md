@@ -13,6 +13,8 @@ Release 1 intentionally excludes the following behavior:
 - Recurring events
 - Assigned seating or visual seat maps
 - Multiple currencies
+- User-selectable language or localized product content
+- Venue-specific time zones
 - Organizer payouts or commissions
 - File uploads and R2-backed media
 - Real-time updates, WebSockets, or live collaboration
@@ -21,4 +23,3 @@ Release 1 intentionally excludes the following behavior:
 - Integration with TestingWithEkki accounts or data
 
 Exclusion from R1 does not mean permanent rejection. Introducing one of these capabilities requires a requirement-change issue and an update to the appropriate release specification.
-

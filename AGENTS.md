@@ -26,3 +26,14 @@ This repository contains a standalone event-management and booking product. It i
 - An accepted requirement change must update the PRD and affected API, data, and testing documents.
 - ADRs are immutable after acceptance except for status or supersession metadata. Create a new ADR to replace an earlier decision.
 
+## Working conventions (SDLC simulation)
+
+- Issue first: every unit of work has a GitHub issue (requirement IDs, acceptance criteria) before code is written.
+- Proposal before code: approach and file tree are agreed with the owner before implementation starts.
+- Requirement IDs appear in branch names, commit messages, and test/file names (NFR-005).
+- Slices merge in order (S0→S8); SPIKE-A gates S4, SPIKE-B gates S5; docs-only and code PRs stay separate per slice.
+- PRs are small and focused, use the PR template, link `Closes #`, and merge with merge commits.
+- GitHub access: never use `gh`; use the web UI or MCP on the personal account. Push via the personal SSH key only on explicit owner request.
+- Cloudflare: free plan only, personal account. Preview resources are disposable (deploy → verify → delete); never commit secrets, database IDs, or preview URLs that outlive their run.
+- Verification: full local matrix before push; CI proves PRs; evidence recorded in the PR and, for spikes, in `RESULTS.md`.
+

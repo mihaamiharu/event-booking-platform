@@ -1,0 +1,10 @@
+{
+  "name": "ebp-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free TypeScript client (S0 stub).",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  }
+}

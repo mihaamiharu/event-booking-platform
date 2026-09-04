@@ -1,0 +1,14 @@
+{
+  "name": "ebp-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "R1 test suites: node:test unit/API layers, Playwright E2E (S0 skeleton).",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "event-booking-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone event-management and booking product (R1 attendee journey).",
+  "workspaces": [
+    "client",
+    "worker",
+    "tests"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint:req-ids": "node tools/check-req-ids.mjs",
+    "test:unit": "node --experimental-strip-types --no-warnings --test \"tests/unit/**/*.test.ts\"",
+    "test:e2e": "npm run test:e2e --workspace=tests"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

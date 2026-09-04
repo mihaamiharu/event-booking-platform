@@ -1,10 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
     "types": ["node"]
   },
-  "include": ["unit/**/*.ts", "e2e/**/*.ts", "playwright.config.ts"]
+  "include": ["unit/**/*.ts", "api/**/*.ts", "db/**/*.ts", "e2e/**/*.ts", "playwright.config.ts", "../worker/src/seed.ts", "../worker/src/password.ts", "../worker/src/config.ts"]
 }

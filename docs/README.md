@@ -23,6 +23,7 @@
 - [Technical design](engineering/TDD.md)
 - [Cloudflare free-plan usage model](engineering/CLOUDFLARE-USAGE-MODEL.md)
 - [R1 data design](engineering/DATA-DESIGN.md)
+- [R1 public API contract](engineering/API-CONTRACT.md)
 - [Architecture decision records](adr/README.md)
 
 ## Releases and testing

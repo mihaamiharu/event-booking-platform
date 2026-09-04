@@ -32,6 +32,7 @@
 
 - [R1 release definition](releases/RELEASE-001.md)
 - [R1 seed and test data](testing/TEST-DATA.md)
+- [R1 test strategy](testing/TEST-STRATEGY.md)
 
 ## Planning
 

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
+  "name": "ebp-r1",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": { "SEED_VERSION": "r1-v1" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ebp-r1-local",
+      "database_id": "local-s1-placeholder"
+    }
+  ],
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ebp-preview",
+          "database_id": "preview-id-swapped-at-deploy-time"
+        }
+      ]
+    }
+  }
+}

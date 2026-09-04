@@ -1,0 +1,5 @@
+# Local-only dev secrets — copy to `.dev.vars` (gitignored). Never commit real values.
+# Preview secrets are set via `wrangler secret put --env preview` (S4 owns rotation).
+WORKSPACE_SECRET=local-dev-only-workspace-secret
+SESSION_SECRET=local-dev-only-session-secret
+TURNSTILE_SECRET=dummy-disabled-locally

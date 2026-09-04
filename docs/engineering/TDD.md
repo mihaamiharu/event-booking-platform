@@ -2,7 +2,7 @@
 
 **Release:** R1 — Attendee Booking
 **Status:** Ready for review
-**Version:** 0.3
+**Version:** 0.4
 
 ## 1. Design goals
 
@@ -57,6 +57,8 @@ An R1 workspace expires after seven days without a successful API request associ
 Checkout uses an idempotency key and a logical transaction or D1 batch so that booking creation, payment recording, and capacity reservation succeed or fail together. The final design must document D1's exact transactional guarantees before implementation.
 
 ## 6. Free-plan controls
+
+Binding budgets, exhaustion behavior, and monitoring are specified in [Cloudflare free-plan usage model](CLOUDFLARE-USAGE-MODEL.md) (reviewed 2026-09-04 against current published limits). This section states the controls; the usage model is authoritative for numbers.
 
 - Static assets bypass Worker execution.
 - No SSR.

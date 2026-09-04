@@ -87,6 +87,8 @@ R1 monetary values are integer IDR amounts. R1 domain instants are persisted in 
 
 ## 9. Security baseline
 
+The binding design is specified in [R1 authentication and workspace security](AUTH-SECURITY.md). This section states the baseline; that document is authoritative for mechanisms.
+
 - Validate external input with explicit schemas.
 - Store secrets only in Cloudflare secret bindings.
 - Use HTTP-only session cookies.

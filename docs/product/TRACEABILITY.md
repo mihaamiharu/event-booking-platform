@@ -2,7 +2,7 @@
 
 **Status:** Ready for review
 
-This matrix connects accepted product behavior to user flow, business rules, interface, seed state, and planned verification. API operations and database entities will be added during engineering design.
+This matrix connects accepted product behavior to user flow, business rules, interface, seed state, and planned verification. API operations are specified in [R1 public API contract](../../engineering/API-CONTRACT.md) §2 (requirement → operation matrix); database entities are specified in [R1 data design](../../engineering/DATA-DESIGN.md) §2.
 
 | Requirement | User flow | Business rules | Primary interface | Seed or scenario | Planned evidence |
 | --- | --- | --- | --- | --- | --- |

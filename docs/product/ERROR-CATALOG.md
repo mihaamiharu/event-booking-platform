@@ -10,10 +10,12 @@ The HTTP category is a discovery expectation; the API design must either adopt i
 | --- | ---: | --- | --- |
 | `VALIDATION_FAILED` | 400 | One or more request fields are structurally invalid | Identify affected fields without exposing internals |
 | `WORKSPACE_REQUIRED` | 401 | No valid signed workspace context exists | Start or restore workspace provisioning |
+| `WORKSPACE_PROVISION_FAILED` | 503 | Provisioning could not complete a full seed state | Show retry-later guidance; never imply a workspace is ready |
 | `WORKSPACE_EXPIRED` | 410 | The workspace exceeded seven inactive days | Explain expiration and start a new workspace |
 | `WORKSPACE_RATE_LIMITED` | 429 | Provision or reset abuse control was reached | Show retry-later guidance |
 | `WORKSPACE_RESET_FAILED` | 500 | Reset did not restore a complete seed state | Preserve explicit failure; never imply reset succeeded |
 | `AUTH_REQUIRED` | 401 | A protected operation has no valid attendee session | Sign in and preserve a safe intended destination |
+| `AUTH_RATE_LIMITED` | 429 | Sign-in throttling tripped | Retry with backoff after the indicated delay |
 | `AUTH_INVALID_CREDENTIALS` | 401 | Seeded email/password did not authenticate | Show one non-enumerating credential error |
 | `EVENT_NOT_FOUND` | 404 | Event is missing or not publicly accessible | Show the public not-found state |
 | `SESSION_NOT_BOOKABLE` | 409 | Session status, time, sales window, or capacity prevents booking | Refresh current session availability |
@@ -25,6 +27,8 @@ The HTTP category is a discovery expectation; the API design must either adopt i
 | `IDEMPOTENCY_KEY_REQUIRED` | 400 | Checkout omitted its retry identity | Retry through a valid checkout submission |
 | `IDEMPOTENCY_CONFLICT` | 409 | The key was reused with different checkout input | Start a new checkout attempt |
 | `BOOKING_NOT_FOUND` | 404 | Booking is missing or not owned by the active attendee/workspace | Show one non-enumerating not-found state |
+| `SERVICE_UNAVAILABLE` | 503 | Quota, CPU, overload, or downstream retry-later condition | Show retry guidance with `Retry-After` where provided |
+| `STORAGE_FULL` | 503 | Database storage cap reached; reads are unaffected | Explain temporary write pause and retry later |
 | `UNEXPECTED_ERROR` | 500 | The platform cannot provide a more specific safe outcome | Show a correlation reference and retry guidance |
 
 ## Error rules

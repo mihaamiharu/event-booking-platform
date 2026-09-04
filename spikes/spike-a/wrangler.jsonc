@@ -1,0 +1,9 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
+  "name": "ebp-spike-a-local",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": [],
+  "workers_dev": true,
+  "preview_urls": false
+}

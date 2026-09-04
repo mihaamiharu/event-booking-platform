@@ -19,6 +19,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint:req-ids
       - run: npm run test:unit
+      - run: npm run test:api
       - run: npx playwright install --with-deps chromium
         working-directory: tests
       - run: npm run test:e2e

@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint:req-ids": "node tools/check-req-ids.mjs",
     "test:unit": "node --experimental-strip-types --no-warnings --test \"tests/unit/**/*.test.ts\"",
+    "test:db": "node --experimental-strip-types --no-warnings --test \"tests/db/**/*.test.ts\"",
     "test:e2e": "npm run test:e2e --workspace=tests",
     "test:api": "node --experimental-strip-types --no-warnings --test \"tests/api/**/*.test.ts\""
   },

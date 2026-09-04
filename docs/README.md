@@ -37,6 +37,7 @@
 ## Planning
 
 - [Prepared GitHub issue backlog](planning/ISSUE-BACKLOG.md)
+- [R1 implementation slice plan](planning/SLICE-PLAN.md)
 
 ## Documentation lifecycle
 

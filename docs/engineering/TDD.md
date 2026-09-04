@@ -54,7 +54,7 @@ An R1 workspace expires after seven days without a successful API request associ
 
 ## 5. Booking consistency
 
-Checkout uses an idempotency key and a logical transaction or D1 batch so that booking creation, payment recording, and capacity reservation succeed or fail together. The final design must document D1's exact transactional guarantees before implementation.
+Checkout uses an idempotency key and a logical transaction or D1 batch so that booking creation, payment recording, and capacity reservation succeed or fail together. The exact tables, conditional capacity update, and required concurrency spike are specified in [R1 data design](DATA-DESIGN.md) §3 and §6.
 
 ## 6. Free-plan controls
 

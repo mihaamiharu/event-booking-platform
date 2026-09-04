@@ -1,0 +1,6 @@
+# Spike harnesses are throwaway; never commit install output or local state.
+spikes/*/node_modules/
+spikes/*/.wrangler/
+spikes/*/.dev.vars
+spikes/*/dev.sqlite*
+**/.DS_Store

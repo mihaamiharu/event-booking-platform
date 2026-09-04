@@ -1,9 +1,9 @@
 # Product Requirements Document
 
-**Product:** Event Booking Platform  
-**Release:** R1 — Attendee Booking  
-**Status:** Draft  
-**Version:** 0.1
+**Product:** Event Booking Platform
+**Release:** R1 — Attendee Booking
+**Status:** Ready for review
+**Version:** 0.3
 
 ## 1. Release objective
 
@@ -33,6 +33,8 @@ Acceptance criteria:
 - Invalid credentials do not establish a session and produce a stable, user-readable error.
 - Session cookies are HTTP-only, secure in production, and scoped to the target application.
 - Signing out invalidates the active session.
+- Self-registration and password recovery are not available in R1.
+- The [seed-data specification](../testing/TEST-DATA.md) documents the R1 credentials and expected account state.
 
 ### Event discovery
 
@@ -101,6 +103,18 @@ Acceptance criteria:
 - One attendee cannot retrieve another attendee's booking.
 - A missing or inaccessible booking returns a stable not-found outcome without revealing whether it exists elsewhere.
 
+#### BKG-005 — Attendee booking list
+
+The platform shall allow an attendee to find their confirmed bookings after leaving the confirmation page.
+
+Acceptance criteria:
+
+- The list includes only confirmed bookings owned by the authenticated attendee and active workspace.
+- Each result includes booking reference, event name, session start, quantity, total, and booking status.
+- Results are ordered by booking creation time with the newest first.
+- An attendee with no confirmed bookings sees an explicit empty state.
+- Selecting a result opens its booking detail.
+
 ### Simulated payment
 
 #### PAY-001 — Deterministic payment simulation
@@ -109,10 +123,12 @@ The platform shall simulate payment without contacting a real payment provider.
 
 Acceptance criteria:
 
-- R1 provides a documented success input that confirms payment.
-- A rejected input produces a stable payment-declined result.
+- The simulation code `SIMULATE-SUCCESS` produces a successful payment result.
+- The simulation code `SIMULATE-DECLINE` produces a stable payment-declined result.
+- Any other value is rejected as an invalid simulation code.
 - A declined payment creates no confirmed booking and consumes no capacity.
-- No real card number or financial credential is requested or stored.
+- The interface clearly labels the field as a simulation code.
+- No real card number, security code, expiry date, or financial credential is requested or stored.
 
 ### Workspace lifecycle
 
@@ -136,6 +152,30 @@ Acceptance criteria:
 - Reset restores documented accounts, events, ticket types, and capacity.
 - Reset is rate-limited and protected against automated abuse.
 
+#### WSP-003 — Workspace expiration
+
+The platform shall expire a learner workspace after seven consecutive days without successful dynamic activity associated with its valid signed workspace context.
+
+Acceptance criteria:
+
+- A successful API request associated with a valid signed workspace context updates the workspace's last-active time; an attendee session is not required.
+- Loading static assets alone does not extend workspace lifetime.
+- Expired workspace data is unavailable and eligible for scheduled deletion.
+- Returning after expiration creates or requests a new workspace rather than restoring expired mutable data.
+- Resetting a workspace counts as authenticated activity.
+
+#### WSP-004 — Workspace provisioning
+
+The platform shall provide a deterministic learner workspace when a visitor first uses the dynamic target product.
+
+Acceptance criteria:
+
+- A valid existing signed workspace context is reused.
+- When no valid context exists, the platform provisions documented seed state subject to rate limiting and abuse controls.
+- Provisioning does not require a TestingWithEkki account.
+- A provisioned workspace contains the documented attendee account, events, sessions, ticket types, and mutable capacity.
+- A failure to provision produces an explicit retry-later result rather than a partially seeded workspace.
+
 ## 4. Non-functional requirements
 
 ### NFR-001 — Free-tier operation
@@ -158,11 +198,35 @@ Public API errors shall use a documented response shape and stable error code in
 
 Material product behavior, API operations, data entities, tests, and defects shall reference applicable requirement IDs.
 
-## 5. Open questions
+### NFR-006 — Privacy-preserving demo data
 
-- What public product name replaces the working name?
-- How long should an inactive learner workspace remain available?
-- Should R1 allow self-registration, or only deterministic seeded accounts?
-- Which simulated payment inputs should produce success and decline?
-- Should the first deployment use a `workers.dev` hostname or an existing custom subdomain?
+R1 shall not require a visitor to provide real personal or financial information. Seeded identities use reserved `.test` email addresses, and operational logs avoid credentials, session tokens, payment simulation values, and direct personal identifiers.
 
+### NFR-007 — Deterministic workspace behavior
+
+Given the same seed version and workspace reset, the platform shall restore the same logical accounts, content states, prices, and capacity. Date-based values may be derived from a documented seed reference time.
+
+### NFR-008 — Browser support
+
+Core R1 workflows shall support current stable Chrome, Firefox, and Safari at the time of release. Verification may use the corresponding Playwright Chromium, Firefox, and WebKit engines. Browser-specific limitations must be documented rather than silently excluded.
+
+### NFR-009 — R1 regional presentation
+
+R1 shall present English product content, identify monetary values as IDR without fractional digits, and display event and session times in Asia/Jakarta with the WIB label.
+
+## 5. Accepted release decisions
+
+- “Event Booking Platform” remains the working name until branding is selected.
+- R1 uses deterministic seeded attendee accounts and does not provide self-registration.
+- Learner workspaces expire after seven days without authenticated activity.
+- Simulated payment accepts the documented `SIMULATE-SUCCESS` and `SIMULATE-DECLINE` codes.
+- The first deployment uses a free `workers.dev` hostname.
+- R1 uses IDR integer prices without fractional amounts.
+- R1 uses `Asia/Jakarta` for every event and session and displays WIB.
+- R1 product content is English only.
+
+See [Product Decisions](DECISIONS.md) for rationale and consequences.
+
+## 6. Deferred non-blocking product decision
+
+The public product name remains undecided. “Event Booking Platform” is sufficient through R1 design and implementation, but the name must be selected before general availability and a branded hostname.

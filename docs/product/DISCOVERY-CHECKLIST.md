@@ -1,6 +1,6 @@
 # R1 Product Discovery Review
 
-**Status:** Ready for owner review
+**Status:** Approved by product owner on 2026-09-04
 
 ## Product definition
 
@@ -42,10 +42,10 @@
 
 ## Owner review
 
-- [ ] Product owner reviewed the R1 discovery package.
-- [ ] Product owner accepted or requested changes to IDR, Asia/Jakarta, and English-only R1 decisions.
-- [ ] Product owner accepted or requested changes to seeded personas and event content.
-- [ ] Product owner accepted or requested changes to the R1 release claim and exclusions.
+- [x] Product owner reviewed the R1 discovery package on 2026-09-04 (issues #1, #2, #3, #4 approved).
+- [x] Product owner accepted IDR, Asia/Jakarta/WIB, and English-only R1 decisions (PD-006, PD-007, PD-008; NFR-009).
+- [x] Product owner accepted seeded personas, event content, and seven-day workspace lifecycle (PD-002, PD-003; WSP-001 through WSP-004).
+- [x] Product owner accepted the R1 release claim and exclusions, including the deterministic payment contract (PD-004; PAY-001).
 
 ## Next stage after approval
 

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
+  "name": "ebp-spike-b-local",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-08-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ebp-spike-b-local",
+      "database_id": "local-spike-b-placeholder"
+    }
+  ]
+}

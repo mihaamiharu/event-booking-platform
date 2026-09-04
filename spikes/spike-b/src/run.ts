@@ -51,7 +51,13 @@ async function checkout(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ key, qty, mode }),
   });
-  return { status: res.status, body: await res.json() };
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    body = { raw: (await res.text()).slice(0, 120) };
+  }
+  return { status: res.status, body };
 }
 
 async function runMode(mode: Mode): Promise<string> {

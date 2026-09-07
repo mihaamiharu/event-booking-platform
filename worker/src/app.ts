@@ -6,6 +6,7 @@ import type { WorkerEnv } from "./config.ts";
 import { first, newMeta } from "./db.ts";
 import { err } from "./errors.ts";
 import { events } from "./routes/events.ts";
+import { session } from "./routes/session.ts";
 import { workspaces } from "./routes/workspaces.ts";
 import {
   getCookie,
@@ -63,6 +64,7 @@ app.use("/api/*", async (c, next) => {
 
 app.route("/api/workspaces", workspaces);
 app.route("/api/events", events);
+app.route("/api/session", session);
 
 app.notFound((c) => {
   if (c.req.path.startsWith("/api/")) {

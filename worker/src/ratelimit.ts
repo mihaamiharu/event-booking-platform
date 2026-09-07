@@ -20,6 +20,16 @@ export function clientIp(request: Request): string {
   return "unknown-local";
 }
 
+export async function resetRateLimit(
+  meta: D1Meta,
+  db: D1Database,
+  opts: { scope: string; identity: string; windowMs: number; nowMs: number },
+): Promise<void> {
+  const bucket = Math.floor(opts.nowMs / opts.windowMs);
+  const key = `${opts.scope}:${await sha256Hex(opts.identity)}:${bucket}`;
+  await run(meta, db, "DELETE FROM rate_counters WHERE key = ?1", key);
+}
+
 export interface RateLimitResult {
   allowed: boolean;
   retryAfterSec: number;

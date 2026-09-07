@@ -89,6 +89,7 @@ input {
 }
 
 select {
+  width: 100%;
   max-width: 100%;
 }
 
@@ -97,6 +98,10 @@ select {
   gap: var(--space-1);
   margin-top: var(--space-3);
   max-width: min(24rem, 100%);
+}
+
+.field > * {
+  min-width: 0;
 }
 
 .field label {

@@ -16,7 +16,11 @@ async function globalSetup(config: FullConfig): Promise<void> {
   resetRateCounters(baseURL);
   const page = await browser.newPage({ baseURL });
   await page.goto("/events");
-  await page.getByRole("heading", { name: "Events", level: 1 }).waitFor();
+  // Wait for catalog CONTENT, not just the h1: the h1 renders in loading and
+  // error states too, and saving state before the auto-provision round-trip
+  // completes persists a cookie-less context. Every test would then burn one
+  // masked provision retry, exhausting the 10/hour budget mid-matrix (S6).
+  await page.locator("article.card").first().waitFor();
   await page.context().storageState({ path: storageState });
   await browser.close();
 }

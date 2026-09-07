@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import type { WorkerEnv } from "./config.ts";
 import { first, newMeta } from "./db.ts";
 import { err } from "./errors.ts";
+import { bookings } from "./routes/bookings.ts";
 import { checkout } from "./routes/checkout.ts";
 import { events } from "./routes/events.ts";
 import { session } from "./routes/session.ts";
@@ -67,6 +68,7 @@ app.route("/api/workspaces", workspaces);
 app.route("/api/events", events);
 app.route("/api/session", session);
 app.route("/api/checkout", checkout);
+app.route("/api/bookings", bookings);
 
 app.notFound((c) => {
   if (c.req.path.startsWith("/api/")) {

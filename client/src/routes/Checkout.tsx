@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "../router.tsx";
+import { Link, navigate } from "../router.tsx";
 import { ApiError, api, getAttendee } from "../lib/api.ts";
 import { formatIdr, formatWibRange } from "../lib/format.ts";
 
@@ -34,23 +34,12 @@ interface Detail {
 
 interface Booking {
   reference: string;
-  eventSlug: string;
-  eventSessionId: string;
-  ticketTypeId: string;
-  quantity: number;
-  unitPriceIdr: number;
-  totalIdr: number;
-  currency: string;
-  paymentStatus: string;
-  bookingStatus: string;
-  createdAt: string;
 }
 
 type State =
   | { kind: "loading" }
   | { kind: "signin" }
   | { kind: "form"; event: Detail }
-  | { kind: "confirmed"; event: Detail; booking: Booking }
   | { kind: "error"; code: string; event?: Detail; retry: () => void };
 
 export function Checkout() {
@@ -124,7 +113,7 @@ export function Checkout() {
     );
   }
 
-  const event = (state.kind === "form" || state.kind === "confirmed" ? state.event : state.event)!;
+  const event = (state.kind === "form" ? state.event : state.event)!;
   const sessions = event.sessions.filter((s) => s.bookable);
   const activeSession = event.sessions.find((s) => s.id === sessionId) ?? sessions[0];
   const sessionTickets = event.ticketTypes.filter((t) => t.eventSessionId === activeSession?.id);
@@ -146,7 +135,9 @@ export function Checkout() {
           paymentCode,
         }),
       });
-      setState({ kind: "confirmed", event, booking: res.booking });
+      // Success lands on the durable detail page with a one-time banner
+      // (BKG-004, UI-DESIGN §3.5); BookingDetail strips ?fresh=1 on mount.
+      navigate(`/bookings/${encodeURIComponent(res.booking.reference)}?fresh=1`);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : "UNEXPECTED_ERROR";
       if (code === "AUTH_REQUIRED") {
@@ -171,46 +162,6 @@ export function Checkout() {
       setSubmitting(false);
     }
   };
-
-  if (state.kind === "confirmed") {
-    const b = state.booking;
-    return (
-      <>
-        <h1>Booking confirmed</h1>
-        <div className="empty" role="status">
-          <p>
-            Booking <strong>{b.reference}</strong> is confirmed for {b.quantity} × {event.name}.
-          </p>
-        </div>
-        <dl className="detail">
-          <div>
-            <dt>Reference</dt>
-            <dd>{b.reference}</dd>
-          </div>
-          <div>
-            <dt>Quantity</dt>
-            <dd>{b.quantity}</dd>
-          </div>
-          <div>
-            <dt>Unit price</dt>
-            <dd className="price">{formatIdr(b.unitPriceIdr)}</dd>
-          </div>
-          <div>
-            <dt>Total</dt>
-            <dd className="price">{formatIdr(b.totalIdr)}</dd>
-          </div>
-          <div>
-            <dt>Payment</dt>
-            <dd>{b.paymentStatus}</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>{b.bookingStatus}</dd>
-          </div>
-        </dl>
-      </>
-    );
-  }
 
   const errState = state.kind === "error" ? state : null;
   return (

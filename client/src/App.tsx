@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { isCheckout, isSignIn, Link, matchEventSlug, usePath } from "./router.tsx";
+import { isBookings, isCheckout, isSignIn, Link, matchBookingRef, matchEventSlug, usePath } from "./router.tsx";
+import { BookingDetail } from "./routes/BookingDetail.tsx";
+import { Bookings } from "./routes/Bookings.tsx";
 import { Checkout } from "./routes/Checkout.tsx";
 import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
@@ -12,8 +14,10 @@ import { PRODUCT_NAME } from "./main.tsx";
 export function App() {
   const path = usePath();
   const slug = matchEventSlug(path);
+  const bookingRef = matchBookingRef(path);
   const signInRoute = isSignIn(path);
   const checkoutRoute = isCheckout(path);
+  const bookingsRoute = isBookings(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
   const [attendee, setAttendee] = useState<Attendee | null>(null);
 
@@ -45,6 +49,7 @@ export function App() {
         <nav aria-label="Primary">
           <Link to="/events">{PRODUCT_NAME}</Link>
           <Link to="/events">Events</Link>
+          <Link to="/bookings">My bookings</Link>
           {attendee ? (
             <>
               <span aria-label="Signed-in attendee">
@@ -64,6 +69,10 @@ export function App() {
           <SignIn />
         ) : checkoutRoute ? (
           <Checkout />
+        ) : bookingsRoute ? (
+          <Bookings />
+        ) : bookingRef !== null ? (
+          <BookingDetail reference={bookingRef} />
         ) : slug !== null ? (
           <EventDetail slug={slug} />
         ) : isEvents ? (

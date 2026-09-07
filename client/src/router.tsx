@@ -49,3 +49,7 @@ export function matchEventSlug(path: string): string | null {
 export function isSignIn(path: string): boolean {
   return path === "/sign-in" || path === "/sign-in/";
 }
+
+export function isCheckout(path: string): boolean {
+  return path === "/checkout" || path === "/checkout/";
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { navigate } from "../router.tsx";
 import { ApiError, api } from "../lib/api.ts";
 import { formatIdr, formatWibRange } from "../lib/format.ts";
 
@@ -95,6 +96,18 @@ export function EventDetail({ slug }: { slug: string }) {
   }
 
   const { event } = state;
+  // Keyed by slug so selection resets when navigating between events.
+  return <SelectableDetail key={event.slug} event={event} />;
+}
+
+function SelectableDetail({ event }: { event: EventDetail }) {
+  const bookableSessions = event.sessions.filter((s) => s.bookable);
+  const [sessionId, setSessionId] = useState<string>(bookableSessions[0]?.id ?? "");
+  const activeSession = event.sessions.find((s) => s.id === sessionId) ?? bookableSessions[0];
+  const sessionTickets = event.ticketTypes.filter((t) => t.eventSessionId === activeSession?.id);
+  const [ticketId, setTicketId] = useState<string>("");
+  const activeTicket = sessionTickets.find((t) => t.id === ticketId) ?? sessionTickets[0];
+
   return (
     <>
       <h1>{event.name}</h1>
@@ -102,24 +115,58 @@ export function EventDetail({ slug }: { slug: string }) {
         {event.venue.name} · {event.venue.city}
       </p>
       <p>{event.description}</p>
-      <h2>Schedule (WIB)</h2>
-      <ul>
+      <h2 id="schedule-heading">Schedule (WIB)</h2>
+      <div role="radiogroup" aria-labelledby="schedule-heading">
         {event.sessions.map((s) => (
-          <li key={s.id}>
+          <label key={s.id} className="radio">
+            <input
+              type="radio"
+              name="session"
+              value={s.id}
+              checked={activeSession?.id === s.id}
+              disabled={!s.bookable}
+              onChange={() => {
+                setSessionId(s.id);
+                setTicketId("");
+              }}
+            />
             {formatWibRange(s.startAt, s.endAt)} · {s.remainingCapacity} left ·{" "}
             {s.bookable ? <span className="badge">Bookable</span> : <span className="badge">{s.reason}</span>}
-          </li>
+          </label>
         ))}
-      </ul>
-      <h2>Tickets</h2>
-      <dl className="detail">
-        {event.ticketTypes.map((t) => (
-          <div key={t.id}>
-            <dt>{t.name}</dt>
-            <dd className="price">{formatIdr(t.priceIdr)}</dd>
-          </div>
+      </div>
+      <h2 id="tickets-heading">Tickets</h2>
+      <div role="radiogroup" aria-labelledby="tickets-heading">
+        {sessionTickets.map((t) => (
+          <label key={t.id} className="radio">
+            <input
+              type="radio"
+              name="ticket"
+              value={t.id}
+              checked={(activeTicket?.id ?? sessionTickets[0]?.id) === t.id}
+              onChange={() => setTicketId(t.id)}
+            />
+            {t.name} — <span className="price">{formatIdr(t.priceIdr)}</span>
+          </label>
         ))}
-      </dl>
+      </div>
+      <p>
+        <button
+          type="button"
+          disabled={!activeSession?.bookable || !activeTicket}
+          onClick={() => {
+            const params = new URLSearchParams({
+              event: event.slug,
+              session: activeSession!.id,
+              ticket: activeTicket!.id,
+            });
+            navigate(`/checkout?${params.toString()}`);
+          }}
+        >
+          Continue
+        </button>
+      </p>
     </>
   );
 }
+

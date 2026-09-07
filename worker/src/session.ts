@@ -3,6 +3,8 @@
 // SHA-256 hex digest as sessions.token_hash PK — a DB read never yields a
 // usable token. Cookie: HttpOnly; SameSite=Lax; Path=/api; Max-Age=7d;
 // Secure except on localhost (mirrors workspace.ts posture).
+import { first, run, type D1Database, type D1Meta } from "./db.ts";
+import { getCookie } from "./workspace.ts";
 
 const enc = new TextEncoder();
 
@@ -59,3 +61,38 @@ export function sessionExpiryIso(nowMs: number): string {
 // (AUTH-SECURITY T-05). Never a real user salt/hash.
 export const DUMMY_SALT_B64 = "AAAAAAAAAAAAAAAAAAAAAA==";
 export const DUMMY_HASH_HEX = "0".repeat(64);
+
+export interface SessionIdentity {
+  userId: string;
+}
+
+/**
+ * Resolve the attendee session for a workspace-scoped request (BKG-003,
+ * AUTH-SECURITY §3). Returns null for missing/foreign/revoked/expired
+ * sessions — callers answer 401 AUTH_REQUIRED with no oracle. Valid sessions
+ * slide their expiry (7d, capped in practice by workspace expiry enforced in
+ * middleware).
+ */
+export async function resolveSession(
+  meta: D1Meta,
+  db: D1Database,
+  request: Request,
+  workspaceId: string,
+  nowMs: number,
+): Promise<SessionIdentity | null> {
+  const token = getCookie(request, "ebp_session");
+  if (!token) return null;
+  const tokenHash = await sha256Hex(token);
+  const row = await first<{ user_id: string; expires_at: string }>(
+    meta,
+    db,
+    "SELECT user_id, expires_at FROM sessions WHERE token_hash = ?1 AND workspace_id = ?2 AND revoked_at IS NULL",
+    tokenHash,
+    workspaceId,
+  );
+  if (!row) return null;
+  const exp = Date.parse(row.expires_at);
+  if (Number.isNaN(exp) || exp <= nowMs) return null;
+  await run(meta, db, "UPDATE sessions SET expires_at = ?1 WHERE token_hash = ?2", sessionExpiryIso(nowMs), tokenHash);
+  return { userId: row.user_id };
+}

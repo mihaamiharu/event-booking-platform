@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { isSignIn, Link, matchEventSlug, usePath } from "./router.tsx";
+import { isCheckout, isSignIn, Link, matchEventSlug, usePath } from "./router.tsx";
+import { Checkout } from "./routes/Checkout.tsx";
 import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
 import { SignIn } from "./routes/SignIn.tsx";
@@ -12,6 +13,7 @@ export function App() {
   const path = usePath();
   const slug = matchEventSlug(path);
   const signInRoute = isSignIn(path);
+  const checkoutRoute = isCheckout(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
   const [attendee, setAttendee] = useState<Attendee | null>(null);
 
@@ -60,6 +62,8 @@ export function App() {
       <main id="main" tabIndex={-1}>
         {signInRoute ? (
           <SignIn />
+        ) : checkoutRoute ? (
+          <Checkout />
         ) : slug !== null ? (
           <EventDetail slug={slug} />
         ) : isEvents ? (

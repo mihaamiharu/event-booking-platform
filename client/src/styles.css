@@ -82,17 +82,21 @@ input {
   min-height: 44px;
   font-size: 16px;
   width: 100%;
-  max-width: 24rem;
+  max-width: min(24rem, 100%);
   padding: var(--space-2);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+select {
+  max-width: 100%;
 }
 
 .field {
   display: grid;
   gap: var(--space-1);
   margin-top: var(--space-3);
-  max-width: 24rem;
+  max-width: min(24rem, 100%);
 }
 
 .field label {
@@ -101,6 +105,19 @@ input {
 
 form button[type="submit"] {
   margin-top: var(--space-3);
+}
+
+.radio {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  max-width: 40rem;
+}
+
+.radio input {
+  width: auto;
+  min-height: 24px;
 }
 
 :focus-visible {

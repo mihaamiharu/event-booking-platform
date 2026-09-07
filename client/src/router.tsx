@@ -45,3 +45,7 @@ export function matchEventSlug(path: string): string | null {
   const m = /^\/events\/([^/]+)\/?$/.exec(path);
   return m ? decodeURIComponent(m[1]!) : null;
 }
+
+export function isSignIn(path: string): boolean {
+  return path === "/sign-in" || path === "/sign-in/";
+}

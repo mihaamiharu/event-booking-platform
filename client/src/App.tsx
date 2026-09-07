@@ -1,13 +1,28 @@
-import { Link, matchEventSlug, usePath } from "./router.tsx";
+import { useEffect, useState } from "react";
+import { isSignIn, Link, matchEventSlug, usePath } from "./router.tsx";
 import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
+import { SignIn } from "./routes/SignIn.tsx";
+import { clearAttendee, getAttendee, signOut, type Attendee } from "./lib/api.ts";
 import { PRODUCT_NAME } from "./main.tsx";
 
 // S3 chrome (UI-DESIGN §2): skip link, nav landmark, one h1 per route.
+// S4 (ACC-001): attendee menu + sign out in the header when signed in.
 export function App() {
   const path = usePath();
   const slug = matchEventSlug(path);
+  const signInRoute = isSignIn(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
+  const [attendee, setAttendee] = useState<Attendee | null>(null);
+
+  useEffect(() => {
+    setAttendee(getAttendee());
+  }, [path]);
+
+  const onSignOut = async () => {
+    await signOut();
+    setAttendee(null);
+  };
 
   return (
     <>
@@ -28,10 +43,30 @@ export function App() {
         <nav aria-label="Primary">
           <Link to="/events">{PRODUCT_NAME}</Link>
           <Link to="/events">Events</Link>
+          {attendee ? (
+            <>
+              <span aria-label="Signed-in attendee">
+                {attendee.displayName}
+              </span>
+              <button type="button" onClick={() => void onSignOut()}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/sign-in">Sign in</Link>
+          )}
         </nav>
       </header>
       <main id="main" tabIndex={-1}>
-        {slug !== null ? <EventDetail slug={slug} /> : isEvents ? <Events /> : <NotFound />}
+        {signInRoute ? (
+          <SignIn />
+        ) : slug !== null ? (
+          <EventDetail slug={slug} />
+        ) : isEvents ? (
+          <Events />
+        ) : (
+          <NotFound />
+        )}
       </main>
     </>
   );

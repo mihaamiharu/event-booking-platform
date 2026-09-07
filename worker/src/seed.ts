@@ -157,12 +157,17 @@ export async function provisionWorkspace(
   return { workspaceId: w, seedReferenceAt: t0 };
 }
 
-const RESET_TABLES = [
+// Child-to-parent delete order. D1 enforces FOREIGN KEYs (proven on local D1
+// 2026-09-07: reset-after-checkout failed until idempotency_keys moved before
+// bookings — its nullable booking_id still constrains the parent delete), so
+// this order is load-bearing, not tidy-up. Exported for cleanup.ts reuse;
+// node:sqlite tests enable the same enforcement (see support/sqlite.ts).
+export const RESET_TABLES = [
   "sessions",
   "payment_attempts",
   "booking_items",
-  "bookings",
   "idempotency_keys",
+  "bookings",
   "ticket_types",
   "event_sessions",
   "events",

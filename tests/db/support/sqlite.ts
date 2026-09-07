@@ -13,6 +13,10 @@ export class SqliteBatchDB implements BatchDB {
 
   constructor(db: DatabaseSync) {
     this.db = db;
+    // Match D1: FOREIGN KEYs enforced (proven on local D1 2026-09-07 —
+    // node:sqlite leaves them off by default, which once hid an illegal
+    // delete order in RESET_TABLES).
+    this.db.exec("PRAGMA foreign_keys = ON");
   }
 
   /** Hook before each data statement (fault injection overrides it). */

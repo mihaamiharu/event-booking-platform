@@ -58,6 +58,10 @@ export function isBookings(path: string): boolean {
   return path === "/bookings" || path === "/bookings/";
 }
 
+export function isDemo(path: string): boolean {
+  return path === "/demo" || path === "/demo/";
+}
+
 export function matchBookingRef(path: string): string | null {
   const m = /^\/bookings\/([^/]+)\/?$/.exec(path);
   return m ? decodeURIComponent(m[1]!) : null;

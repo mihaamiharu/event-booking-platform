@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { isBookings, isCheckout, isSignIn, Link, matchBookingRef, matchEventSlug, usePath } from "./router.tsx";
+import { isBookings, isCheckout, isDemo, isSignIn, Link, matchBookingRef, matchEventSlug, usePath } from "./router.tsx";
 import { BookingDetail } from "./routes/BookingDetail.tsx";
 import { Bookings } from "./routes/Bookings.tsx";
 import { Checkout } from "./routes/Checkout.tsx";
+import { Demo } from "./routes/Demo.tsx";
 import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
 import { SignIn } from "./routes/SignIn.tsx";
@@ -18,6 +19,7 @@ export function App() {
   const signInRoute = isSignIn(path);
   const checkoutRoute = isCheckout(path);
   const bookingsRoute = isBookings(path);
+  const demoRoute = isDemo(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
   const [attendee, setAttendee] = useState<Attendee | null>(null);
 
@@ -71,6 +73,8 @@ export function App() {
           <Checkout />
         ) : bookingsRoute ? (
           <Bookings />
+        ) : demoRoute ? (
+          <Demo />
         ) : bookingRef !== null ? (
           <BookingDetail reference={bookingRef} />
         ) : slug !== null ? (
@@ -81,6 +85,9 @@ export function App() {
           <NotFound />
         )}
       </main>
+      <footer className="site-footer">
+        <Link to="/demo">Demo controls</Link>
+      </footer>
     </>
   );
 }

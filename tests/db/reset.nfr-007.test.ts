@@ -5,7 +5,7 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { provisionWorkspace, resetWorkspace } from "../../worker/src/seed.ts";
+import { provisionWorkspace, resetWorkspace, workspaceTag } from "../../worker/src/seed.ts";
 import { SqliteBatchDB, applyMigration } from "./support/sqlite.ts";
 import { snapshot } from "./support/snapshot.ts";
 
@@ -26,13 +26,14 @@ describe("nfr-007 reset invariants and reset-twice equality", () => {
     const db = migratedDb();
     const adapter = new SqliteBatchDB(db);
     const { workspaceId: w } = await provisionWorkspace(adapter, { now: new Date("2026-09-04T00:00:00Z") });
+    const sid = (key: string): string => `${workspaceTag(w)}_${key}`;
     const { workspaceId: w2, seedReferenceAt: t1 } = await resetWorkspace(adapter, w, { now: new Date("2026-09-10T00:00:00Z") });
     assert.equal(w2, w);
     assert.equal(t1, "2026-09-10T00:00:00.000Z");
 
     const maya = get<{ n: number }>(db, "SELECT COUNT(*) AS n FROM bookings WHERE workspace_id = ? AND reference = 'BKG-SEED-MAYA-001'", w);
     assert.equal(maya.n, 1);
-    const design = get<{ capacity: number; confirmed_quantity: number }>(db, "SELECT capacity, confirmed_quantity FROM event_sessions WHERE workspace_id = ? AND id = 'sess_design_01'", w);
+    const design = get<{ capacity: number; confirmed_quantity: number }>(db, `SELECT capacity, confirmed_quantity FROM event_sessions WHERE workspace_id = ? AND id = '${sid('sess_design_01')}'`, w);
     assert.equal(design.capacity - design.confirmed_quantity, 18);
   });
 

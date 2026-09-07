@@ -12,6 +12,10 @@
 // back on statement ERROR (bad-table and PK-conflict probes left zero rows).
 // A 0-row conditional UPDATE is not an error — S5 checkout therefore uses
 // the SPIKE-B gated pattern, never a conflict batch.
+//
+// Identity: table PKs are global, so every seeded row id is prefixed with an
+// 8-hex workspace tag (`${tag}_venue_merdeka`). References (`BKG-SEED-*`)
+// stay stable — they are UNIQUE per workspace. Seed keys stay stable too.
 import { SEED_VERSION_FALLBACK } from "./config.ts";
 import { hashPassword, randomSaltB64 } from "./password.ts";
 
@@ -55,8 +59,15 @@ interface SeedContext {
   t0: string; // seed_reference_at (UTC ISO)
 }
 
+/** Workspace-unique seed id; stable within the workspace. Exported for tests. */
+export function workspaceTag(workspaceId: string): string {
+  return workspaceId.replace(/-/g, "").slice(0, 8);
+}
+
 function seedStatements(ctx: SeedContext, creds: { alex: { salt: string; hash: string }; maya: { salt: string; hash: string }; fixture: { salt: string; hash: string } }): Statement[] {
   const { w, t0 } = ctx;
+  const tag = workspaceTag(w);
+  const sid = (key: string): string => `${tag}_${key}`;
   const t0ms = Date.parse(t0);
   const S: Statement[] = [];
   const run = (sql: string, ...params: unknown[]) => {
@@ -71,51 +82,51 @@ function seedStatements(ctx: SeedContext, creds: { alex: { salt: string; hash: s
   );
 
   // Venues (fictional Jakarta).
-  run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_merdeka', 'Merdeka Community Hall', 'Jakarta', 'Asia/Jakarta')", "venue_merdeka", w);
-  run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_cendana', 'Cendana Creative Studio', 'Jakarta', 'Asia/Jakarta')", "venue_cendana", w);
+  run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_merdeka', 'Merdeka Community Hall', 'Jakarta', 'Asia/Jakarta')", sid("venue_merdeka"), w);
+  run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_cendana', 'Cendana Creative Studio', 'Jakarta', 'Asia/Jakarta')", sid("venue_cendana"), w);
 
   // Users: two interactive + one non-interactive fixture (no credential).
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES ('user_alex', ?1, 'alex.attendee@example.test', 'Alex', ?2, ?3, 'attendee_alex')", w, creds.alex.hash, creds.alex.salt);
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES ('user_maya', ?1, 'maya.attendee@example.test', 'Maya', ?2, ?3, 'attendee_maya')", w, creds.maya.hash, creds.maya.salt);
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES ('user_fixture_soldout', ?1, 'fixture.soldout@example.test', 'Fixture', ?2, ?3, NULL)", w, creds.fixture.hash, creds.fixture.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'alex.attendee@example.test', 'Alex', ?3, ?4, 'attendee_alex')", sid("user_alex"), w, creds.alex.hash, creds.alex.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'maya.attendee@example.test', 'Maya', ?3, ?4, 'attendee_maya')", sid("user_maya"), w, creds.maya.hash, creds.maya.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'fixture.soldout@example.test', 'Fixture', ?3, ?4, NULL)", sid("user_fixture_soldout"), w, creds.fixture.hash, creds.fixture.salt);
 
   // Available published event: T0+14d 09:00–12:00 WIB, sales T0-1d → T0+13d 23:59.
   const d14 = jakartaMidnightUtc(t0ms, 14);
   const d13 = jakartaMidnightUtc(t0ms, 13);
   const dMinus1 = jakartaMidnightUtc(t0ms, -1);
-  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES ('event_design_workshop', ?1, 'venue_merdeka', 'jakarta-design-systems-workshop', 'Jakarta Design Systems Workshop', 'A hands-on morning on design systems.', 'PUBLISHED', ?2, ?3)", w, at(dMinus1, 0, 0), at(d13, 23, 59));
-  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES ('sess_design_01', ?1, 'event_design_workshop', 'SCHEDULED', ?2, ?3, 20, 2)", w, at(d14, 9, 0), at(d14, 12, 0));
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_design_general', ?1, 'event_design_workshop', 'sess_design_01', 'General', 150000)", w);
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_design_premium', ?1, 'event_design_workshop', 'sess_design_01', 'Premium', 250000)", w);
+  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES (?1, ?2, ?3, 'jakarta-design-systems-workshop', 'Jakarta Design Systems Workshop', 'A hands-on morning on design systems.', 'PUBLISHED', ?4, ?5)", sid("event_design_workshop"), w, sid("venue_merdeka"), at(dMinus1, 0, 0), at(d13, 23, 59));
+  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES (?1, ?2, ?3, 'SCHEDULED', ?4, ?5, 20, 2)", sid("sess_design_01"), w, sid("event_design_workshop"), at(d14, 9, 0), at(d14, 12, 0));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'General', 150000)", sid("ticket_design_general"), w, sid("event_design_workshop"), sid("sess_design_01"));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'Premium', 250000)", sid("ticket_design_premium"), w, sid("event_design_workshop"), sid("sess_design_01"));
 
   // Sold-out published event: T0+21d 18:30–21:00 WIB, sales T0-1d → T0+20d 23:59.
   const d21 = jakartaMidnightUtc(t0ms, 21);
   const d20 = jakartaMidnightUtc(t0ms, 20);
-  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES ('event_product_meetup', ?1, 'venue_cendana', 'community-product-meetup', 'Community Product Meetup', 'An evening meetup for product people.', 'PUBLISHED', ?2, ?3)", w, at(dMinus1, 0, 0), at(d20, 23, 59));
-  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES ('sess_meetup_01', ?1, 'event_product_meetup', 'SCHEDULED', ?2, ?3, 5, 5)", w, at(d21, 18, 30), at(d21, 21, 0));
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_meetup_general', ?1, 'event_product_meetup', 'sess_meetup_01', 'General', 50000)", w);
+  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES (?1, ?2, ?3, 'community-product-meetup', 'Community Product Meetup', 'An evening meetup for product people.', 'PUBLISHED', ?4, ?5)", sid("event_product_meetup"), w, sid("venue_cendana"), at(dMinus1, 0, 0), at(d20, 23, 59));
+  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES (?1, ?2, ?3, 'SCHEDULED', ?4, ?5, 5, 5)", sid("sess_meetup_01"), w, sid("event_product_meetup"), at(d21, 18, 30), at(d21, 21, 0));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'General', 50000)", sid("ticket_meetup_general"), w, sid("event_product_meetup"), sid("sess_meetup_01"));
 
   // Excluded fixtures: draft, cancelled, past (COMPLETED session).
   const d28 = jakartaMidnightUtc(t0ms, 28);
   const d10 = jakartaMidnightUtc(t0ms, 10);
   const dPast = jakartaMidnightUtc(t0ms, -7);
-  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES ('event_draft_conference', ?1, 'venue_merdeka', 'modern-web-conference', 'Modern Web Conference', 'Draft fixture, not listed.', 'DRAFT', ?2, ?3)", w, at(dMinus1, 0, 0), at(d28, 23, 59));
-  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES ('sess_draft_01', ?1, 'event_draft_conference', 'SCHEDULED', ?2, ?3, 10, 0)", w, at(d28, 10, 0), at(d28, 12, 0));
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_draft_general', ?1, 'event_draft_conference', 'sess_draft_01', 'General', 100000)", w);
-  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES ('event_cancelled_evening', ?1, 'venue_cendana', 'creative-tech-evening', 'Creative Tech Evening', 'Cancelled fixture, not listed.', 'CANCELLED', ?2, ?3)", w, at(dMinus1, 0, 0), at(d10, 23, 59));
-  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES ('sess_cancelled_01', ?1, 'event_cancelled_evening', 'SCHEDULED', ?2, ?3, 10, 0)", w, at(d10, 18, 0), at(d10, 20, 0));
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_cancelled_general', ?1, 'event_cancelled_evening', 'sess_cancelled_01', 'General', 100000)", w);
-  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES ('event_past_forum', ?1, 'venue_merdeka', 'product-leadership-forum', 'Product Leadership Forum', 'Past fixture, not listed.', 'PUBLISHED', ?2, ?3)", w, at(dMinus1, 0, 0), at(dPast, 23, 59));
-  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES ('sess_past_01', ?1, 'event_past_forum', 'COMPLETED', ?2, ?3, 10, 0)", w, at(dPast, 14, 0), at(dPast, 16, 0));
-  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES ('ticket_past_general', ?1, 'event_past_forum', 'sess_past_01', 'General', 100000)", w);
+  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES (?1, ?2, ?3, 'modern-web-conference', 'Modern Web Conference', 'Draft fixture, not listed.', 'DRAFT', ?4, ?5)", sid("event_draft_conference"), w, sid("venue_merdeka"), at(dMinus1, 0, 0), at(d28, 23, 59));
+  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES (?1, ?2, ?3, 'SCHEDULED', ?4, ?5, 10, 0)", sid("sess_draft_01"), w, sid("event_draft_conference"), at(d28, 10, 0), at(d28, 12, 0));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'General', 100000)", sid("ticket_draft_general"), w, sid("event_draft_conference"), sid("sess_draft_01"));
+  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES (?1, ?2, ?3, 'creative-tech-evening', 'Creative Tech Evening', 'Cancelled fixture, not listed.', 'CANCELLED', ?4, ?5)", sid("event_cancelled_evening"), w, sid("venue_cendana"), at(dMinus1, 0, 0), at(d10, 23, 59));
+  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES (?1, ?2, ?3, 'SCHEDULED', ?4, ?5, 10, 0)", sid("sess_cancelled_01"), w, sid("event_cancelled_evening"), at(d10, 18, 0), at(d10, 20, 0));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'General', 100000)", sid("ticket_cancelled_general"), w, sid("event_cancelled_evening"), sid("sess_cancelled_01"));
+  run("INSERT INTO events (id, workspace_id, venue_id, slug, name, description, status, sales_open_at, sales_close_at) VALUES (?1, ?2, ?3, 'product-leadership-forum', 'Product Leadership Forum', 'Past fixture, not listed.', 'PUBLISHED', ?4, ?5)", sid("event_past_forum"), w, sid("venue_merdeka"), at(dMinus1, 0, 0), at(dPast, 23, 59));
+  run("INSERT INTO event_sessions (id, workspace_id, event_id, status, start_at, end_at, capacity, confirmed_quantity) VALUES (?1, ?2, ?3, 'COMPLETED', ?4, ?5, 10, 0)", sid("sess_past_01"), w, sid("event_past_forum"), at(dPast, 14, 0), at(dPast, 16, 0));
+  run("INSERT INTO ticket_types (id, workspace_id, event_id, event_session_id, name, price_idr) VALUES (?1, ?2, ?3, ?4, 'General', 100000)", sid("ticket_past_general"), w, sid("event_past_forum"), sid("sess_past_01"));
 
   // Seeded bookings: Maya 2× General (300000); fixture owns sold-out 5× (250000).
-  run("INSERT INTO bookings (id, workspace_id, user_id, event_id, event_session_id, reference, status, quantity, total_idr, currency, created_at) VALUES ('booking_maya_design', ?1, 'user_maya', 'event_design_workshop', 'sess_design_01', 'BKG-SEED-MAYA-001', 'CONFIRMED', 2, 300000, 'IDR', ?2)", w, t0);
-  run("INSERT INTO booking_items (id, workspace_id, booking_id, ticket_type_id, quantity, unit_price_idr, subtotal_idr) VALUES ('item_maya_design', ?1, 'booking_maya_design', 'ticket_design_general', 2, 150000, 300000)", w);
-  run("INSERT INTO payment_attempts (id, workspace_id, user_id, booking_id, outcome, created_at) VALUES ('pay_maya_design', ?1, 'user_maya', 'booking_maya_design', 'SUCCEEDED', ?2)", w, t0);
-  run("INSERT INTO bookings (id, workspace_id, user_id, event_id, event_session_id, reference, status, quantity, total_idr, currency, created_at) VALUES ('booking_fixture_soldout', ?1, 'user_fixture_soldout', 'event_product_meetup', 'sess_meetup_01', 'BKG-SEED-SOLDOUT-001', 'CONFIRMED', 5, 250000, 'IDR', ?2)", w, t0);
-  run("INSERT INTO booking_items (id, workspace_id, booking_id, ticket_type_id, quantity, unit_price_idr, subtotal_idr) VALUES ('item_fixture_soldout', ?1, 'booking_fixture_soldout', 'ticket_meetup_general', 5, 50000, 250000)", w);
-  run("INSERT INTO payment_attempts (id, workspace_id, user_id, booking_id, outcome, created_at) VALUES ('pay_fixture_soldout', ?1, 'user_fixture_soldout', 'booking_fixture_soldout', 'SUCCEEDED', ?2)", w, t0);
+  run("INSERT INTO bookings (id, workspace_id, user_id, event_id, event_session_id, reference, status, quantity, total_idr, currency, created_at) VALUES (?1, ?2, ?3, ?4, ?5, 'BKG-SEED-MAYA-001', 'CONFIRMED', 2, 300000, 'IDR', ?6)", sid("booking_maya_design"), w, sid("user_maya"), sid("event_design_workshop"), sid("sess_design_01"), t0);
+  run("INSERT INTO booking_items (id, workspace_id, booking_id, ticket_type_id, quantity, unit_price_idr, subtotal_idr) VALUES (?1, ?2, ?3, ?4, 2, 150000, 300000)", sid("item_maya_design"), w, sid("booking_maya_design"), sid("ticket_design_general"));
+  run("INSERT INTO payment_attempts (id, workspace_id, user_id, booking_id, outcome, created_at) VALUES (?1, ?2, ?3, ?4, 'SUCCEEDED', ?5)", sid("pay_maya_design"), w, sid("user_maya"), sid("booking_maya_design"), t0);
+  run("INSERT INTO bookings (id, workspace_id, user_id, event_id, event_session_id, reference, status, quantity, total_idr, currency, created_at) VALUES (?1, ?2, ?3, ?4, ?5, 'BKG-SEED-SOLDOUT-001', 'CONFIRMED', 5, 250000, 'IDR', ?6)", sid("booking_fixture_soldout"), w, sid("user_fixture_soldout"), sid("event_product_meetup"), sid("sess_meetup_01"), t0);
+  run("INSERT INTO booking_items (id, workspace_id, booking_id, ticket_type_id, quantity, unit_price_idr, subtotal_idr) VALUES (?1, ?2, ?3, ?4, 5, 50000, 250000)", sid("item_fixture_soldout"), w, sid("booking_fixture_soldout"), sid("ticket_meetup_general"));
+  run("INSERT INTO payment_attempts (id, workspace_id, user_id, booking_id, outcome, created_at) VALUES (?1, ?2, ?3, ?4, 'SUCCEEDED', ?5)", sid("pay_fixture_soldout"), w, sid("user_fixture_soldout"), sid("booking_fixture_soldout"), t0);
 
   return S;
 }

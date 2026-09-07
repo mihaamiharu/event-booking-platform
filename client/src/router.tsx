@@ -53,3 +53,12 @@ export function isSignIn(path: string): boolean {
 export function isCheckout(path: string): boolean {
   return path === "/checkout" || path === "/checkout/";
 }
+
+export function isBookings(path: string): boolean {
+  return path === "/bookings" || path === "/bookings/";
+}
+
+export function matchBookingRef(path: string): string | null {
+  const m = /^\/bookings\/([^/]+)\/?$/.exec(path);
+  return m ? decodeURIComponent(m[1]!) : null;
+}

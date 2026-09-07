@@ -61,6 +61,8 @@ test("pay-001 decline preserves selection, retry with new attempt succeeds (UF-0
 test("bkg-001 checkout viewport: no horizontal overflow at 360px", async ({ page }) => {
   await signInAsAlex(page);
   await openCheckout(page);
+  // Wait for the populated selects: the loading skeleton would mask overflow.
+  await expect(page.getByLabel("Session")).toBeVisible();
   await page.setViewportSize({ width: 360, height: 740 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - 360);
   expect(overflow).toBeLessThanOrEqual(0);

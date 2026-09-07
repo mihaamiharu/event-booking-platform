@@ -21,6 +21,7 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:db
       - run: npm run test:api
+      - run: cp worker/.dev.vars.example worker/.dev.vars
       - run: npx playwright install --with-deps chromium
         working-directory: tests
       - run: npm run test:e2e

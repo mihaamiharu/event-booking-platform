@@ -15,6 +15,7 @@
     "test:unit": "node --experimental-strip-types --no-warnings --test \"tests/unit/**/*.test.ts\"",
     "test:db": "node --experimental-strip-types --no-warnings --test \"tests/db/**/*.test.ts\"",
     "test:e2e": "npm run test:e2e --workspace=tests",
+    "serve:e2e": "npm run build --workspace=client && npx wrangler d1 migrations apply DB --local --config worker/wrangler.jsonc && npx wrangler d1 execute DB --local --command \"DELETE FROM rate_counters;\" --config worker/wrangler.jsonc && npx wrangler dev --port 8780 --config worker/wrangler.jsonc",
     "test:api": "node tools/run-api-tests.mjs"
   },
   "devDependencies": {

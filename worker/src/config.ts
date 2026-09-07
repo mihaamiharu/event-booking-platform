@@ -4,6 +4,7 @@ import type { D1Database } from "./db.ts";
 
 export interface WorkerEnv {
   DB: D1Database;
+  ASSETS: { fetch(request: Request): Promise<Response> };
   SEED_VERSION?: string;
   WORKSPACE_SECRET?: string;
   SESSION_SECRET?: string;

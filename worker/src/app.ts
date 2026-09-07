@@ -71,4 +71,8 @@ app.notFound((c) => {
   return c.text("Not found.", 404);
 });
 
+// With Worker code present, the SPA fallback runs through the assets
+// binding (docs: static-assets/binding); see index.ts. run_worker_first
+// keeps /api/* dynamic; pages stay static-first (zero Worker CPU,
+// usage-model §2.1).
 export default app;

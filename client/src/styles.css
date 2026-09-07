@@ -1,0 +1,155 @@
+/* S3 design tokens + chrome (UI-DESIGN §1–§2, framework-agnostic).
+   Measured contrast (2026-09-07): body #1a1a1a on #ffffff 17.40:1; muted
+   #595959 7.00:1; primary links #0b5fff 5.13:1; danger #b00020 7.33:1;
+   focus 2px solid outline. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --text: #1a1a1a;
+  --text-muted: #595959;
+  --surface: #ffffff;
+  --border: #d9d9d9;
+  --primary: #0b5fff;
+  --danger: #b00020;
+  --focus: #0b5fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface);
+  padding: var(--space-2) var(--space-3);
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: var(--space-2);
+  top: var(--space-2);
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header nav {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.brand {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--text);
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3);
+}
+
+a {
+  color: var(--primary);
+}
+
+button,
+select {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.cards {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+}
+
+@media (min-width: 1024px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-3);
+}
+
+.card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.1rem;
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.85rem;
+}
+
+.price {
+  font-variant-numeric: tabular-nums;
+}
+
+.error,
+.empty {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.error {
+  border-color: var(--danger);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.skeleton {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+  color: var(--text-muted);
+}
+
+dl.detail {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-3);
+}
+
+dl.detail dt {
+  font-weight: 600;
+}

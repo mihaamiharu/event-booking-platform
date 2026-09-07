@@ -20,6 +20,9 @@ jobs:
       - run: npm run lint:req-ids
       - run: npm run test:unit
       - run: npm run test:db
+      - run: npm run build --workspace=client
+      - run: cp worker/.dev.vars.example worker/.dev.vars
+      - run: npx wrangler d1 migrations apply DB --local --config worker/wrangler.jsonc
       - run: npm run test:api
       - run: npx playwright install --with-deps chromium
         working-directory: tests

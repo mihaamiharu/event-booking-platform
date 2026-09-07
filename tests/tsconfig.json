@@ -1,8 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "types": ["node"]
   },
-  "include": ["unit/**/*.ts", "api/**/*.ts", "db/**/*.ts", "e2e/**/*.ts", "playwright.config.ts", "../worker/src/seed.ts", "../worker/src/password.ts", "../worker/src/config.ts"]
+  "include": ["unit/**/*.ts", "api/**/*.ts", "db/**/*.ts", "e2e/**/*.ts", "playwright.config.ts", "../worker/src/seed.ts", "../worker/src/password.ts", "../worker/src/config.ts", "../client/src/lib/format.ts"]
 }

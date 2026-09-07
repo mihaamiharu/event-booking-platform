@@ -5,6 +5,12 @@
   "compatibility_date": "2026-08-01",
   "workers_dev": true,
   "preview_urls": false,
+  "assets": {
+    "directory": "../client/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
   "vars": { "SEED_VERSION": "r1-v1" },
   "d1_databases": [
     {

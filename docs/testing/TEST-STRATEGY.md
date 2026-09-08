@@ -13,7 +13,7 @@
 | API contract | Deployed Worker + D1 (local first) | Every operation × success/validation/auth/not-found/conflict/decline/rate-limit; stable codes; `meta.rows_read/rows_written` budget assertions | Browser rendering |
 | Database state | D1 directly (local) | Booking/item/payment rows, price snapshots, capacity counters, ownership scoping, reset invariants, index usage (`EXPLAIN QUERY PLAN` on hot paths) | HTTP semantics |
 | UI component + a11y | Component harness + browser | UI-DESIGN §4 states, §6 annotations: keyboard paths, names/roles, focus moves, error association, contrast values | Business logic |
-| E2E journeys | Full stack (local, preview smoke) | UF-001…006 end to end on Playwright Chromium, Firefox, WebKit at 360px and desktop viewports | Quota exhaustion, abuse soaks |
+| E2E journeys | Full stack (local, preview smoke) | UF-001…006 end to end on Playwright Chromium at 360px and desktop viewports (Firefox/WebKit excluded per owner decision 2026-09-08, NFR-008) | Quota exhaustion, abuse soaks |
 | Concurrency spike | Local + preview | DATA-DESIGN §6: ≥20 parallel last-seat checkouts; idempotent replay/conflict suite | Production load |
 | Workspace lifecycle | API + D1 | Provision/reuse/rate-limit, reset isolation + invariants, expiry boundary via direct `last_active_at` manipulation (**local D1 only**), cleanup-batch drain | Real 7-day waits |
 | Security negative | API + logs | AUTH-SECURITY T-01…T-12 verbatim | Penetration testing beyond R1 scope |
@@ -45,7 +45,7 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 | `NFR-005` | — | — | — | — | — | ID-in-name lint + PR checklist (§5) |
 | `NFR-006` | — | — | no card columns; sim codes unpersisted | no card fields | — | T-10 log redaction grep |
 | `NFR-007` | — | — | reset-twice diff (logical equality modulo T0/hashes) | — | — | — |
-| `NFR-008` | — | — | — | — | Chromium/Firefox/WebKit | document engine-specific limits |
+| `NFR-008` | — | — | — | — | Chromium (Firefox/WebKit excluded per owner decision 2026-09-08) | — |
 | `NFR-009` | formatter | `currency`/`priceIdr` shapes | integer storage, UTC instants | `IDR 150.000` + `WIB` rendering | — | — |
 
 ## 3. Deterministic seed usage

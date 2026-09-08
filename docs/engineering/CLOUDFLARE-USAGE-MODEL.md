@@ -55,7 +55,7 @@ No R2, Queues, Durable Objects, KV, Hyperdrive, or paid service is required for 
 | `SESSION_SECRET` | Secret | Local dev secret | Preview secret | Production secret (rotation = issue #8) |
 | `WORKSPACE_SECRET` | Secret | Local dev secret | Preview secret | Production secret for signed workspace context |
 | `TURNSTILE_SECRET` | Secret | Dummy/disabled | Preview widget secret | Production widget secret |
-| Cron trigger | Schedule | Manual `scheduled` test endpoint | Disabled | 1 daily trigger (of 5/account), e.g. `30 0 * * *` UTC |
+| Cron trigger | Schedule | Tested via the store seam on `node:sqlite` (no test-only endpoints per contract §1.5) | Disabled | 1 hourly trigger (of 5/account), `0 * * * *` UTC |
 | Observability | Setting | `enabled: true`, full sampling | `enabled: true`, full sampling | `enabled: true`, sampled (see §7) |
 
 One production D1 database (not per-workspace databases): the Free plan allows only 10 databases, and per-workspace databases would exhaust that cap and duplicate seed reference data. Workspace isolation is by `workspace_id` column derived from the signed context/session, never from request payloads (BR-ACC-002).
@@ -81,9 +81,30 @@ Why this fits: Worker requests (100k/day) bind before D1 reads (5M/day) for this
 
 Hard constraints for detailed design: no endpoint may exceed 8 D1 queries or 10 ms CPU at p99; checkout batch must be atomic (BR-BKG-003) without exceeding the 50-query invocation cap; cleanup tick must finish useful work within 10 ms CPU by paginating (wall time allows 15 min, CPU does not).
 
+### Reconciled bounds (S8, local-metered)
+
+Verified bounds are the ceilings asserted in `tests/api/*` (S8 code PR).
+Local D1 meters index maintenance per write, so write-heavy operations meter
+above the estimates above; the estimates are superseded by the verified
+bounds, which remain far inside the reference-day math (25k requests,
+≈600k reads, ≈30k writes vs. 100k / 5M / 100k daily caps).
+
+| Operation | Estimate | Verified bound | Note |
+| --- | --- | --- | --- |
+| Catalog list | ≤ 30 R | ≤ 30 R | Matches |
+| Event detail | ≤ 50 R | ≤ 50 R | Matches (touch write unasserted) |
+| Sign-in | ≤ 5 R / 1 W | ≤ 15 R / ≤ 15 W | Bound covers rate check + session insert + activity touch |
+| Sign-out | ≤ 3 R / 1 W | unasserted (204, no envelope) | Single revoke + touch by construction |
+| Checkout | ≤ 30 R / ≤ 8 W | ≤ 30 R / ≤ 30 W | Write bound covers gate + 4 inserts + touch + session slide incl. index rows |
+| Booking list | ≤ 20 R / 0 W | ≤ 15 R / ≤ 15 W | Reads include one session slide + activity touch (DATA-DESIGN §5.3) |
+| Booking detail | ≤ 10 R / 0 W | ≤ 15 R / ≤ 15 W | Same slide + touch note |
+| Provision | ≤ 45 W | ≤ 120 W | Seed meters ~114 locally (index maintenance); S3-calibrated ceiling |
+| Reset | ≤ 60 W | ≤ 150 W | Deletes + reseed + index rows; local ceiling |
+| Cleanup tick | ≤ 500 R/W | bounded batch of 5 workspaces/tick | Backlog drains over ticks by design |
+
 ## 4. Scheduled expiration cleanup
 
-- One production Cron trigger, daily (e.g. `30 0 * * *` UTC). Uses 1 of 5 account triggers; preview/local have none.
+- One production Cron trigger, hourly (`0 * * * *` UTC; S8 amends the earlier daily proposal — hourly reclaims storage sooner at the same 1-of-5 trigger cost). Uses 1 of 5 account triggers; preview/local have none.
 - Each tick: `SELECT` a bounded batch of workspaces with `last_active_at < now - 7 days` via index (never a full table scan), then delete/mask their mutable rows in chunks (`DELETE … WHERE workspace_id = ? LIMIT n` loop), updating a cleanup cursor so the next tick resumes.
 - Successful `/api/*` requests with a valid signed workspace context update `last_active_at`; static asset hits and rejected requests do not (BR-WSP-001). Reset counts as activity.
 - Cron CPU is 10 ms on Free: handler does minimal deserialization, no password hashing, no JSON pretty-printing, no full-catalog reads. Large backlogs drain over multiple ticks; this is by design.

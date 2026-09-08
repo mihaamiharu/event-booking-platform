@@ -28,3 +28,4 @@ Architecture Decision Records explain material choices that affect product scope
 | [0005](ADR-0005-personal-account-workers-dev.md) | Host preview/production in the personal account on workers.dev | Accepted |
 | [0006](ADR-0006-hono-api-router.md) | Use Hono for the Worker API router | Accepted |
 | [0007](ADR-0007-react-vite-spa-client.md) | Use React + Vite (SPA) for the R1 client | Accepted |
+| [0008](ADR-0008-d1-foreign-key-enforcement.md) | Treat D1 foreign keys as enforced; share one delete order | Accepted |

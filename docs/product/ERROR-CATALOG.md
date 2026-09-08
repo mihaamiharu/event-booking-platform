@@ -14,6 +14,7 @@ The HTTP category is a discovery expectation; the API design must either adopt i
 | `WORKSPACE_EXPIRED` | 410 | The workspace exceeded seven inactive days | Explain expiration and start a new workspace |
 | `WORKSPACE_RATE_LIMITED` | 429 | Provision or reset abuse control was reached | Show retry-later guidance |
 | `WORKSPACE_RESET_FAILED` | 500 | Reset did not restore a complete seed state | Preserve explicit failure; never imply reset succeeded |
+| `TURNSTILE_REQUIRED` | 403 | An armed IP must complete a challenge before provision/reset writes | Show the challenge and resubmit with its token |
 | `AUTH_REQUIRED` | 401 | A protected operation has no valid attendee session | Sign in and preserve a safe intended destination |
 | `AUTH_RATE_LIMITED` | 429 | Sign-in throttling tripped | Retry with backoff after the indicated delay |
 | `AUTH_INVALID_CREDENTIALS` | 401 | Seeded email/password did not authenticate | Show one non-enumerating credential error |

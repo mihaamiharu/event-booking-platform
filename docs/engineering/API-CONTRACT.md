@@ -46,7 +46,15 @@ List responses use `?page=` (1-based, default 1) and `?perPage=` (default 20, ma
 { "data": [ … ], "pagination": { "page": 1, "perPage": 20, "total": 42 } }
 ```
 
-### 1.5 Test-support boundaries
+### 1.5 Row-budget envelope (`meta`)
+
+Successful JSON responses carry `{ "meta": { "rows_read": n, "rows_written": m } }`
+reporting D1 billed rows for that operation (204 responses carry no body and
+therefore no envelope). Tests assert the S8-reconciled ceilings from the
+usage model; a ceiling breach files against the offending query with its
+`EXPLAIN QUERY PLAN`.
+
+### 1.6 Test-support boundaries
 
 No test-only endpoints, bulk-delete routes, or seed-injection parameters exist in any environment. Deterministic state comes only from provision/reset with seed `r1-v1`; preview uses the same operations against a disposable database. Load and concurrency tests must respect the provision/reset rate limits or run against local Wrangler state.
 
@@ -72,7 +80,7 @@ No test-only endpoints, bulk-delete routes, or seed-injection parameters exist i
 
 ### 3.1 Workspaces
 
-**`POST /api/workspaces/provision`** — create or reuse the caller's workspace (WSP-004). No workspace context required. Rate-limited (→ `WORKSPACE_RATE_LIMITED`, 429 + `Retry-After`).
+**`POST /api/workspaces/provision`** — create or reuse the caller's workspace (WSP-004). No workspace context required. JSON body required. Rate-limited (→ `WORKSPACE_RATE_LIMITED`, 429 + `Retry-After`). An IP armed by repeated rate-limit hits must instead present a challenge token (`{ "turnstileToken": "…" }`, → `TURNSTILE_REQUIRED`, 403 without one).
 
 ```json
 // Response 200
@@ -85,7 +93,7 @@ Sets `ebp_workspace`. Reuse path returns the existing active workspace unchanged
 
 **`GET /api/workspaces/status`** — workspace required. Returns the provision shape plus `lastActiveAt`. Expired context → `WORKSPACE_EXPIRED` (410) with guidance to provision anew.
 
-**`POST /api/workspaces/reset`** — workspace required, session optional. Body: `{ "confirm": true }` (`confirm: true` required, else `VALIDATION_FAILED`). Rate-limited. Success 200 returns the provision shape with a new `seedReferenceAt` plus `{ "reset": { "seedVersion": "r1-v1" } }`. Incomplete restore → `WORKSPACE_RESET_FAILED` (500).
+**`POST /api/workspaces/reset`** — workspace required, session optional. Body: `{ "confirm": true }` (`confirm: true` required, else `VALIDATION_FAILED`). Rate-limited. An armed IP additionally sends `{ "confirm": true, "turnstileToken": "…" }` (→ `TURNSTILE_REQUIRED`, 403 without one). Success 200 returns the provision shape with a new `seedReferenceAt` plus `{ "reset": { "seedVersion": "r1-v1" } }`. Incomplete restore → `WORKSPACE_RESET_FAILED` (500).
 
 ### 3.2 Session
 
@@ -159,7 +167,7 @@ Per the usage model §8, Worker-request, CPU, and D1 row/storage exhaustion all 
 
 Checkout success/decline/invalid-code, idempotent replay/conflict, empty catalog/bookings, foreign-booking 404, and expired-workspace 410 examples above are the contract fixtures issues #10 (UI) and #11 (test strategy) must reuse.
 
-## 6. Stable error codes (adopts the product error catalog plus three approved additions)
+## 6. Stable error codes (adopts the product error catalog plus four approved additions)
 
 All catalog codes are adopted unchanged with their HTTP categories. Approved additions (required by the usage model and rate-limit design; the error catalog is updated in this same change):
 
@@ -169,3 +177,4 @@ All catalog codes are adopted unchanged with their HTTP categories. Approved add
 | `SERVICE_UNAVAILABLE` | 503 | Quota/CPU/overload retry-later; includes `Retry-After` where known |
 | `STORAGE_FULL` | 503 | Database storage cap reached; reads unaffected |
 | `WORKSPACE_PROVISION_FAILED` | 503 | Provisioning could not complete; no partial workspace |
+| `TURNSTILE_REQUIRED` | 403 | Armed IP must complete a challenge before provision/reset writes |

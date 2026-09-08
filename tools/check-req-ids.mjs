@@ -16,7 +16,9 @@ const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const ID_RE = /\b(ACC|EVT|BKG|PAY|WSP|NFR)-\d{3}\b/g;
+// Business-rule IDs (BR-ACC-002) contain requirement-like suffixes; the
+// negative lookbehind keeps them out of the R1 requirement universe.
+const ID_RE = /(?<!BR-)\b(ACC|EVT|BKG|PAY|WSP|NFR)-\d{3}\b/g;
 const FILE_ID_RE = /(acc|evt|bkg|pay|wsp|nfr)-\d{3}/i;
 const strictCoverage = process.argv.includes("--strict-coverage");
 
@@ -69,4 +71,8 @@ if (missing.length && strictCoverage) {
   console.error("coverage FAILED under --strict-coverage");
   process.exit(1);
 }
-console.log("coverage report-only until S8 (TEST-STRATEGY §5)");
+console.log(
+  strictCoverage
+    ? "coverage enforced under --strict-coverage (S8)"
+    : "coverage report-only until S8 (TEST-STRATEGY §5)",
+);

@@ -58,7 +58,7 @@ test("pay-001 decline preserves selection, retry with new attempt succeeds (UF-0
   await expect(page.getByText(/BKG-[A-Z2-9]{6}/).first()).toBeVisible();
 });
 
-test("bkg-001 checkout viewport: no horizontal overflow at 360px", async ({ page }) => {
+test("bkg-001 checkout viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await signInAsAlex(page);
   await openCheckout(page);
   // Wait for the populated selects: the loading skeleton would mask overflow.

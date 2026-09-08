@@ -39,7 +39,7 @@ test("acc-001 sign-in failure: one message, email kept, focus to alert", async (
   await expect(page.getByLabel("Email")).toHaveValue("alex.attendee@example.test");
 });
 
-test("acc-001 sign-in viewport: no horizontal overflow at 360px", async ({ page }) => {
+test("acc-001 sign-in viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/sign-in");
   await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();

@@ -1,6 +1,7 @@
 // D1-backed rate limiting (AUTH-SECURITY §5, usage-model §5).
 // One row per key/window; keys hash the IP (never raw addresses, §7).
-// Table: db/migrations/0002_rate_limits.sql. Turnstile arming rides in S8.
+// Table: db/migrations/0002_rate_limits.sql. Turnstile arming (S8) records
+// denials via turnstile.ts and challenges provision/reset when armed.
 import { first, run, type D1Database, type D1Meta } from "./db.ts";
 
 const enc = new TextEncoder();

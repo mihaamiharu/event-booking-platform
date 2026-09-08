@@ -111,6 +111,26 @@ select {
   min-width: 0;
 }
 
+.challenge-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.challenge-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  max-width: min(24rem, 90vw);
+}
+
 .field label {
   font-weight: 600;
 }

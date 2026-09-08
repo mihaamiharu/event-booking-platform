@@ -58,22 +58,41 @@ export function Demo() {
     setResetting(true);
     setResetError(null);
     try {
-      const res = await api<Status>("/api/workspaces/reset", {
-        method: "POST",
-        body: JSON.stringify({ confirm: true }),
-      });
-      clearAttendee();
-      setConfirm(false);
-      setState({
-        kind: "ready",
-        status: res.workspace,
-        notice: `Workspace reset to seed state at ${res.workspace.seedReferenceAt}. All sessions signed out.`,
-      });
+      await attemptReset();
     } catch (err) {
-      setResetError(err instanceof ApiError ? `${err.code}: ${err.message}` : "UNEXPECTED_ERROR");
+      // Armed clients solve a challenge, then the reset carries the token.
+      if (err instanceof ApiError && err.code === "TURNSTILE_REQUIRED") {
+        const { requestChallengeToken } = await import("../lib/turnstile.ts");
+        const token = await requestChallengeToken();
+        if (token) {
+          try {
+            await attemptReset(token);
+          } catch (retryErr) {
+            setResetError(
+              retryErr instanceof ApiError ? `${retryErr.code}: ${retryErr.message}` : "UNEXPECTED_ERROR",
+            );
+          }
+        }
+      } else {
+        setResetError(err instanceof ApiError ? `${err.code}: ${err.message}` : "UNEXPECTED_ERROR");
+      }
     } finally {
       setResetting(false);
     }
+  };
+
+  const attemptReset = async (turnstileToken?: string) => {
+    const res = await api<Status>("/api/workspaces/reset", {
+      method: "POST",
+      body: JSON.stringify(turnstileToken ? { confirm: true, turnstileToken } : { confirm: true }),
+    });
+    clearAttendee();
+    setConfirm(false);
+    setState({
+      kind: "ready",
+      status: res.workspace,
+      notice: `Workspace reset to seed state at ${res.workspace.seedReferenceAt}. All sessions signed out.`,
+    });
   };
 
   return (

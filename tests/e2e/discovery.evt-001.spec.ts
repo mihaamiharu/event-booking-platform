@@ -82,7 +82,7 @@ test("evt-001 focus semantics (webkit-safe): skip link target and landmarks", as
   await expect(page.getByRole("link", { name: "View details" }).first()).toBeVisible();
 });
 
-test("evt-001 viewport: no horizontal overflow at 360px", async ({ page }) => {
+test("evt-001 viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/events");
   await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();

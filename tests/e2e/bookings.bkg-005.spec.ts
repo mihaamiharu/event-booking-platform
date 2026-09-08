@@ -64,7 +64,7 @@ test("bkg-004 unknown booking shows not-found", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Booking not found", level: 1 })).toBeVisible();
 });
 
-test("bkg-005 bookings viewport: no horizontal overflow at 360px", async ({ page }) => {
+test("bkg-005 bookings viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await signIn(page, "maya.attendee@example.test", "Booked123!");
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/bookings");

@@ -1,9 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// S3: Chromium-only matrix (owner decision 2026-09-07 — Firefox/WebKit rejoin
-// no later than S8 release verification, NFR-008). Sequential: one local
-// miniflare/D1 serves the run; parallel browsers contend on its SQLite
-// writes (activity updates) and flake.
+// S3/S8: Chromium-only matrix (owner decision — Firefox/WebKit stay out of
+// the R1 matrix, NFR-008). Sequential: one local miniflare/D1 serves the
+// run; parallel browsers contend on its SQLite writes (activity updates)
+// and flake.
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,

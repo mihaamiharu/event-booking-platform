@@ -7,6 +7,7 @@ import { first, newMeta, run } from "../db.ts";
 import { err } from "../errors.ts";
 import { verifyPassword } from "../password.ts";
 import { checkRateLimit, clientIp, resetRateLimit } from "../ratelimit.ts";
+import { recordRateLimitHit } from "../turnstile.ts";
 import {
   clearSessionCookieHeader,
   DUMMY_HASH_HEX,
@@ -82,6 +83,8 @@ session.post("/", async (c) => {
     nowMs,
   });
   if (!rl.allowed) {
+    // Throttle hits arm Turnstile for provision/reset (AUTH-SECURITY §5).
+    await recordRateLimitHit(meta, db, identity, nowMs);
     const res = err(429, "AUTH_RATE_LIMITED", {
       message: "Too many sign-in attempts; retry later.",
     });

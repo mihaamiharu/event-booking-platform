@@ -5,6 +5,7 @@ import type { AppContext } from "../app.ts";
 import { first, newMeta, run, type D1Database, type D1Meta } from "../db.ts";
 import { err } from "../errors.ts";
 import { checkRateLimit, clientIp } from "../ratelimit.ts";
+import { isArmed, recordPass, recordRateLimitHit, verifyToken } from "../turnstile.ts";
 import { provisionWorkspace, resetWorkspace } from "../seed.ts";
 import { resolveSession } from "../session.ts";
 import { d1BatchDb } from "../db.ts";
@@ -27,8 +28,7 @@ export async function touchActivity(
   await run(meta, db, "UPDATE workspaces SET last_active_at = ?1 WHERE id = ?2", nowIso, workspaceId);
 }
 
-function workspaceShape(ws: WorkspaceRow) {
-  return {
+function workspaceShape(ws: WorkspaceRow) {  return {
     workspace: {
       status: ws.status,
       seedVersion: ws.seed_version,
@@ -61,6 +61,42 @@ function withCookieAndMeta(
 
 export const workspaces = new Hono<AppContext>();
 
+/**
+ * Enforce an armed Turnstile challenge. Returns null when the caller may
+ * proceed (valid token, pass cached), else the 403/503 response to send.
+ * Token travels in the JSON body (`turnstileToken`), never in logs.
+ */
+export async function requireChallenge(
+  c: Context<AppContext>,
+  meta: D1Meta,
+  db: D1Database,
+  ip: string,
+  offeredToken: unknown,
+  nowMs: number,
+): Promise<Response | null> {
+  if (typeof offeredToken !== "string" || offeredToken.length === 0) {
+    return err(403, "TURNSTILE_REQUIRED", {
+      message: "Verification required before this action; complete the challenge and retry.",
+    });
+  }
+  let ok = false;
+  try {
+    ok = await verifyToken(offeredToken, c.env.TURNSTILE_SECRET);
+  } catch {
+    // Challenge outage fails closed; unchallenged routes unaffected (§8).
+    return err(503, "SERVICE_UNAVAILABLE", {
+      message: "Verification unavailable; retry later.",
+    });
+  }
+  if (!ok) {
+    return err(403, "TURNSTILE_REQUIRED", {
+      message: "Challenge verification failed; try again.",
+    });
+  }
+  await recordPass(meta, db, ip, nowMs);
+  return null;
+}
+
 workspaces.post("/provision", async (c) => {
   const meta = newMeta();
   const db = c.env.DB;
@@ -71,14 +107,35 @@ workspaces.post("/provision", async (c) => {
     return err(500, "UNEXPECTED_ERROR", { message: "Server misconfigured." });
   }
 
+  const ip = clientIp(c.req.raw);
+
+  // AUTH-SECURITY §6: state-changing endpoints require JSON bodies.
+  if (!c.req.header("content-type")?.includes("application/json")) {
+    return err(400, "VALIDATION_FAILED", { message: "Request body must be JSON." });
+  }
+  let offeredToken: unknown;
+  try {
+    offeredToken = (await c.req.json() as { turnstileToken?: unknown })?.turnstileToken;
+  } catch {
+    return err(400, "VALIDATION_FAILED", { message: "Request body must be JSON." });
+  }
+
+  // Turnstile brake (AUTH-SECURITY §5, usage-model §6): armed IPs prove a
+  // challenge before any write executes.
+  if (await isArmed(meta, db, ip, nowMs)) {
+    const challenge = await requireChallenge(c, meta, db, ip, offeredToken, nowMs);
+    if (challenge) return challenge;
+  }
+
   const rl = await checkRateLimit(meta, db, {
     scope: "provision",
-    identity: clientIp(c.req.raw),
+    identity: ip,
     limit: 10,
     windowMs: 3_600_000,
     nowMs,
   });
   if (!rl.allowed) {
+    await recordRateLimitHit(meta, db, ip, nowMs);
     const res = err(429, "WORKSPACE_RATE_LIMITED", {
       message: "Too many workspaces from this address; retry later.",
     });
@@ -187,7 +244,19 @@ workspaces.post("/reset", async (c) => {
     }
   }
 
-  // Dual abuse controls (AUTH-SECURITY §5, Turnstile arming rides in S8).
+  // Dual abuse controls (AUTH-SECURITY §5); denials arm Turnstile (S8).
+  const ip = clientIp(c.req.raw);
+  if (await isArmed(meta, db, ip, nowMs)) {
+    const challenge = await requireChallenge(
+      c,
+      meta,
+      db,
+      ip,
+      (body as { turnstileToken?: unknown })?.turnstileToken,
+      nowMs,
+    );
+    if (challenge) return challenge;
+  }
   const byWorkspace = await checkRateLimit(meta, db, {
     scope: "reset-ws",
     identity: ws.id,
@@ -196,6 +265,7 @@ workspaces.post("/reset", async (c) => {
     nowMs,
   });
   if (!byWorkspace.allowed) {
+    await recordRateLimitHit(meta, db, ip, nowMs);
     const res = err(429, "WORKSPACE_RATE_LIMITED", {
       message: "Too many resets for this workspace; retry later.",
     });
@@ -204,12 +274,13 @@ workspaces.post("/reset", async (c) => {
   }
   const byIp = await checkRateLimit(meta, db, {
     scope: "reset-ip",
-    identity: clientIp(c.req.raw),
+    identity: ip,
     limit: 30,
     windowMs: 3_600_000,
     nowMs,
   });
   if (!byIp.allowed) {
+    await recordRateLimitHit(meta, db, ip, nowMs);
     const res = err(429, "WORKSPACE_RATE_LIMITED", {
       message: "Too many resets from this address; retry later.",
     });

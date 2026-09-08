@@ -44,7 +44,7 @@ test("wsp-002 demo: book → reset → seed restored (UF-001)", async ({ page })
   await expect(page.getByText("18 left").first()).toBeVisible();
 });
 
-test("wsp-002 demo viewport: no horizontal overflow at 360px", async ({ page }) => {
+test("wsp-002 demo viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/demo");
   await expect(page.getByRole("heading", { name: "Demo controls", level: 1 })).toBeVisible();

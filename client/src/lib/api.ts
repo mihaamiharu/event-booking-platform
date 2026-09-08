@@ -18,14 +18,27 @@ export class ApiError extends Error {
   }
 }
 
-async function provision(): Promise<void> {
+async function provision(token?: string): Promise<void> {
   const res = await fetch("/api/workspaces/provision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: "{}",
+    body: JSON.stringify(token ? { turnstileToken: token } : {}),
   });
   if (!res.ok) {
     throw new ApiError(res.status, (await res.json()) as ApiErrorShape);
+  }
+}
+
+async function provisionWithChallenge(): Promise<void> {
+  try {
+    await provision();
+  } catch (e) {
+    // Armed IPs solve a challenge, then the provision carries the token.
+    if (!(e instanceof ApiError) || e.code !== "TURNSTILE_REQUIRED") throw e;
+    const { requestChallengeToken } = await import("./turnstile.ts");
+    const token = await requestChallengeToken();
+    if (!token) throw e;
+    await provision(token);
   }
 }
 
@@ -40,7 +53,7 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
     const shape = (await res.clone().json().catch(() => null)) as ApiErrorShape | null;
     const code = shape?.error?.code;
     if (code === "WORKSPACE_REQUIRED" || code === "WORKSPACE_EXPIRED") {
-      await provision();
+      await provisionWithChallenge();
       return api<T>(path, init, true);
     }
   }

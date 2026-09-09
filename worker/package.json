@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Cloudflare Worker API (S0 stub; S1 adds routing and bindings).",
+  "description": "Cloudflare Worker API for the R1 attendee journey.",
   "scripts": {
     "typecheck": "tsc --noEmit -p ."
   },

@@ -3,17 +3,14 @@
 // permitted direct-DB test write (TEST-STRATEGY §3), never preview/prod.
 // Cleanup drain itself is proven at the store seam in db/cleanup tests:
 // no test-only HTTP endpoints exist (API-CONTRACT §1.5).
-import { execFileSync } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { runLocalWrangler } from "../../tools/local-runtime.mjs";
 import { baseUrl, headers, provision, resetRateCounters, startWorker } from "./support/harness.ts";
 
 const PORT = Number(process.env.EBP_API_PORT ?? 8790);
 const BASE = baseUrl(PORT);
 const ID = "s7-expiry-wsp003";
-const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 let stop: () => void;
 before(async () => {
@@ -33,14 +30,9 @@ function setLastActive(wsCookie: string, iso: string): void {
   if (!BASE.includes("127.0.0.1") && !BASE.includes("localhost")) {
     throw new Error("direct DB writes are local-only");
   }
-  execFileSync(
-    "npx",
-    [
-      "wrangler", "d1", "execute", "DB", "--local",
-      "--command", `UPDATE workspaces SET last_active_at = '${iso}' WHERE id = '${workspaceId(wsCookie)}';`,
-      "--config", "worker/wrangler.jsonc",
-    ],
-    { cwd: rootDir, stdio: "ignore" },
+  runLocalWrangler(
+    ["d1", "execute", "DB", "--command", `UPDATE workspaces SET last_active_at = '${iso}' WHERE id = '${workspaceId(wsCookie)}';`],
+    { stdio: "ignore" },
   );
 }
 

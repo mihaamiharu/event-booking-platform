@@ -5,20 +5,23 @@
 // Each file provisions its own workspace (parallel-safe, TEST-STRATEGY §3)
 // and sends a unique X-Forwarded-For identity so rate-limit buckets never
 // leak across files. Test-only.
-import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const workerDir = path.resolve(rootDir, "worker");
+import type { ChildProcess } from "node:child_process";
+import { ensureDevVars, runLocalWrangler, startVite } from "../../../tools/local-runtime.mjs";
 
 export async function startWorker(port: number): Promise<() => void> {
   if (process.env.EBP_API_BASE) return () => {};
-  const child: ChildProcess = spawn("npx", ["wrangler", "dev", "--port", String(port)], {
-    cwd: workerDir,
-    stdio: "ignore",
-    shell: process.platform === "win32",
-  });
+  ensureDevVars();
+  runLocalWrangler(["d1", "migrations", "apply", "DB"], { stdio: "ignore" });
+  runLocalWrangler(
+    ["d1", "execute", "DB", "--command", "DELETE FROM rate_counters;"],
+    { stdio: "ignore" },
+  );
+  process.env.EBP_VITE_RUNTIME = "1";
+  const child: ChildProcess = startVite(
+    "dev",
+    ["--host", "127.0.0.1", "--port", String(port)],
+    { stdio: "ignore" },
+  );
   const base = `http://127.0.0.1:${port}`;
   const start = Date.now();
   try {
@@ -30,7 +33,7 @@ export async function startWorker(port: number): Promise<() => void> {
         /* not up yet */
       }
       if (Date.now() - start > 45000) {
-        throw new Error(`wrangler dev did not serve ${base} in time`);
+        throw new Error(`Vite/Cloudflare dev did not serve ${base} in time`);
       }
       await new Promise((r) => setTimeout(r, 250));
     }
@@ -54,10 +57,13 @@ export function resetRateCounters(base: string): void {
   if (!base.includes("127.0.0.1") && !base.includes("localhost")) {
     throw new Error("direct DB writes are local-only");
   }
-  execFileSync(
-    "npx",
-    ["wrangler", "d1", "execute", "DB", "--local", "--command", "DELETE FROM rate_counters;", "--config", "worker/wrangler.jsonc"],
-    { cwd: rootDir, stdio: "ignore" },
+  // Vite/Miniflare owns the live D1 connection. The shared test runner and
+  // Playwright server clear counters before startup; an external SQLite write
+  // during a live session is not a safe reset boundary.
+  if (process.env.EBP_VITE_RUNTIME === "1") return;
+  runLocalWrangler(
+    ["d1", "execute", "DB", "--command", "DELETE FROM rate_counters;"],
+    { stdio: "ignore" },
   );
 }
 

@@ -8,7 +8,11 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,9 +26,10 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:db
       - run: npm run build --workspace=client
-      - run: cp worker/.dev.vars.example worker/.dev.vars
-      - run: npx wrangler d1 migrations apply DB --local --config worker/wrangler.jsonc
+      - run: npm run setup:local
       - run: npm run test:api
-      - run: npx playwright install --with-deps chromium
-        working-directory: tests
+      - if: runner.os == 'Linux'
+        run: npm run install:browsers:with-deps --workspace=tests
+      - if: runner.os != 'Linux'
+        run: npm run install:browsers --workspace=tests
       - run: npm run test:e2e

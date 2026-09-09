@@ -17,9 +17,9 @@
     { "id": "AUTO-NFR-001", "requirement": "NFR-001", "evidence": ["operational", "db"], "tests": ["tests/api/health.nfr-001.test.ts", "tests/unit/turnstile.nfr-001.test.ts"] },
     { "id": "AUTO-NFR-002", "requirement": "NFR-002", "evidence": ["ui-a11y", "positive", "negative"], "tests": ["tests/e2e/discovery.evt-001.spec.ts", "tests/e2e/signin.acc-001.spec.ts"] },
     { "id": "AUTO-NFR-003", "requirement": "NFR-003", "evidence": ["ui-a11y", "boundary"], "tests": ["tests/e2e/discovery.evt-001.spec.ts", "tests/e2e/checkout.bkg-001.spec.ts"] },
-    { "id": "AUTO-NFR-004", "requirement": "NFR-004", "evidence": ["positive", "negative", "operational"], "tests": ["tests/unit/errors.nfr-004.test.ts", "tests/api/health.nfr-001.test.ts"] },
-    { "id": "AUTO-NFR-005", "requirement": "NFR-005", "evidence": ["operational", "positive"], "tests": ["tests/unit/example.nfr-005.test.ts", "tests/unit/scenario.nfr-005.test.ts"] },
-    { "id": "AUTO-NFR-006", "requirement": "NFR-006", "evidence": ["negative", "operational", "security"], "tests": ["tests/api/redaction.nfr-006.test.ts", "tests/unit/turnstile.nfr-001.test.ts"] },
+    { "id": "AUTO-NFR-004", "requirement": "NFR-004", "evidence": ["positive", "negative", "operational"], "tests": ["tests/unit/errors.nfr-004.test.ts", "tests/api/health.nfr-001.test.ts", "tests/api/qa-observability.nfr-004-nfr-005-nfr-006.test.ts"] },
+    { "id": "AUTO-NFR-005", "requirement": "NFR-005", "evidence": ["operational", "positive"], "tests": ["tests/unit/example.nfr-005.test.ts", "tests/unit/scenario.nfr-005.test.ts", "tests/e2e/observability.nfr-004-nfr-005-nfr-006.spec.ts"] },
+    { "id": "AUTO-NFR-006", "requirement": "NFR-006", "evidence": ["negative", "operational", "security"], "tests": ["tests/api/redaction.nfr-006.test.ts", "tests/unit/turnstile.nfr-001.test.ts", "tests/e2e/observability.nfr-004-nfr-005-nfr-006.spec.ts"] },
     { "id": "AUTO-NFR-007", "requirement": "NFR-007", "evidence": ["positive", "db", "boundary"], "tests": ["tests/db/reset.nfr-007.test.ts"] },
     { "id": "AUTO-NFR-008", "requirement": "NFR-008", "evidence": ["positive", "ui-a11y", "operational"], "tests": ["tests/e2e/skeleton.nfr-008.spec.ts"] },
     { "id": "AUTO-NFR-009", "requirement": "NFR-009", "evidence": ["positive", "ui-a11y", "db"], "tests": ["tests/unit/format.nfr-009.test.ts", "tests/e2e/discovery.evt-001.spec.ts"] }

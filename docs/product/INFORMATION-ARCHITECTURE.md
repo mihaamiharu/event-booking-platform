@@ -15,6 +15,9 @@ Events
 
 Demo controls
 └── Reset workspace
+
+QA / local-preview
+└── Observability cockpit
 ```
 
 ## Route inventory
@@ -31,6 +34,7 @@ Route paths are product-level proposals. The router implementation may refine pa
 | `/bookings` | Attendee booking list | Attendee | `BKG-005` |
 | `/bookings/:bookingReference` | Booking confirmation and detail | Attendee | `BKG-004` |
 | `/demo` | Workspace status and reset | Workspace holder | `WSP-002` through `WSP-004` |
+| `/qa/observability` | Safe request exercises and browser-session trace | Local/preview QA only; visibly disabled in production by default | `NFR-004`, `NFR-005`, `NFR-006` |
 
 ## Global navigation
 
@@ -69,6 +73,14 @@ Lists the active attendee's confirmed bookings newest first and provides an expl
 ### Demo controls
 
 Explains that data is isolated and temporary, shows the workspace expiry policy, and requires explicit confirmation before reset. It never exposes another workspace identifier or data.
+
+### QA observability cockpit
+
+Provides health, event discovery/detail, sign-in, and payment-decline request
+exercises. The browser-session timeline shows client-observed status,
+duration, response code, correlation ID, and safe error references. External
+Cloudflare/Grafana links are configured per environment and remain separate
+from client evidence; raw logs and provider credentials are never rendered.
 
 ## Responsive priorities
 

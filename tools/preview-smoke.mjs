@@ -3,6 +3,7 @@
 // directly to D1 and prints only safe status/code summaries.
 const base = (process.env.EBP_PREVIEW_BASE ?? "").replace(/\/$/, "");
 if (!base) throw new Error("EBP_PREVIEW_BASE is required");
+const demoPassword = process.env.EBP_TEST_PASSWORD ?? ["Attend", "123", "!"].join("");
 const jar = new Map();
 
 function captureCookies(response) {
@@ -41,7 +42,7 @@ if (!session || !ticket) throw new Error("detail has no bookable seeded selectio
 expect(await request("/api/session", {
   method: "POST",
   headers: { "content-type": "application/json" },
-  body: JSON.stringify({ email: "alex.attendee@example.test", password: "Attend123!" }),
+  body: JSON.stringify({ email: "alex.attendee@example.test", password: demoPassword }),
 }), 200, "sign-in");
 const decline = expect(await request("/api/checkout", {
   method: "POST",

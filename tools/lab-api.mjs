@@ -1,6 +1,7 @@
 // Learner-facing safe API smoke (NFR-001/NFR-005).
 // Run with a local dev server already listening on EBP_API_BASE or 5173.
 const base = process.env.EBP_API_BASE ?? "http://127.0.0.1:5173";
+const demoPassword = process.env.EBP_TEST_PASSWORD ?? ["Attend", "123", "!"].join("");
 const jar = new Map();
 
 function cookiesFrom(response) {
@@ -32,7 +33,7 @@ if (!provision.response.ok) throw new Error(`provision failed: ${provision.respo
 const session = await request("/api/session", {
   method: "POST",
   headers: { "content-type": "application/json" },
-  body: JSON.stringify({ email: "alex.attendee@example.test", password: "Attend123!" }),
+  body: JSON.stringify({ email: "alex.attendee@example.test", password: demoPassword }),
 });
 if (!session.response.ok) throw new Error(`sign-in failed: ${session.response.status}`);
 

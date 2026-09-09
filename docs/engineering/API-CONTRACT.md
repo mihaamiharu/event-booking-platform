@@ -1,8 +1,8 @@
 # R1 Public API Contract
 
 **Status:** Ready for review
-**Version:** 0.2
-**Scope:** Issues #7 and #66 — stable HTTP operations for every attendee product workflow
+**Version:** 0.3
+**Scope:** Issues #7, #66, and #69 — stable HTTP operations for attendee booking and organizer event management
 **Sources:** PRD, ERROR-CATALOG, INFORMATION-ARCHITECTURE, TRACEABILITY, DATA-DESIGN, CLOUDFLARE-USAGE-MODEL
 **Base path:** `/api` (Worker route; all other paths serve static assets)
 
@@ -77,6 +77,10 @@ No test-only endpoints, bulk-delete routes, or seed-injection parameters exist i
 | `WSP-002` | `POST /api/workspaces/reset` |
 | `WSP-003` | `GET /api/workspaces/status`, expiry codes |
 | `WSP-004` | `POST /api/workspaces/provision` |
+| `ORG-001` | `POST /api/session` role response; `GET/POST/PUT /api/organizer*` authorization |
+| `ORG-002` | `GET /api/organizer`, `POST /api/organizer/events`, `PUT /api/organizer/events/:id` |
+| `ORG-003` | `POST /api/organizer/events`, `PUT /api/organizer/events/:id`, public event reads |
+| `NFR-011` | All organizer writes and workspace-scoped organizer reads |
 
 ## 3. Operations
 
@@ -99,7 +103,7 @@ Sets `ebp_workspace`. Reuse path returns the existing active workspace unchanged
 
 ### 3.2 Session
 
-**`POST /api/session`** — workspace required. Body `{ "email": "alex.attendee@example.test", "password": "Attend123!" }`. Success 200 sets `ebp_session` and returns `{ "attendee": { "email": "…", "displayName": "Alex" } }`. Bad credentials → `AUTH_INVALID_CREDENTIALS` (401, one non-enumerating message). Throttled → `AUTH_RATE_LIMITED` (429).
+**`POST /api/session`** — workspace required. Body `{ "email": "alex.attendee@example.test", "password": "Attend123!" }`. Success 200 sets `ebp_session` and returns `{ "attendee": { "email": "…", "displayName": "Alex" }, "role": "ATTENDEE" }`; the seeded organizer returns `"role": "ORGANIZER"`. Bad credentials → `AUTH_INVALID_CREDENTIALS` (401, one non-enumerating message). Throttled → `AUTH_RATE_LIMITED` (429).
 
 **`DELETE /api/session`** — session required. 204, clears the cookie. Invalidating an already-invalid session still returns 204 (no oracle).
 
@@ -194,6 +198,24 @@ unset or invalid values. Local and preview enable the cockpit unless
 is explicitly `true`. This endpoint never returns credentials, cookies,
 workspace identifiers, raw logs, or exercise payloads.
 
+### 3.7 Organizer event management (organizer session required)
+
+**`GET /api/organizer`** — returns workspace venues and all workspace events, including draft status, session room capacity/confirmed quantity, and ticket types. Missing session → `AUTH_REQUIRED` (401); attendee session → `ORGANIZER_FORBIDDEN` (403). No workspace-owned rows are returned across workspace boundaries.
+
+**`POST /api/organizer/events`** — creates one event with nested sessions and ticket types. The body is:
+
+```json
+{ "name": "Room-aware workshop", "description": "…", "venueId": "venue-id",
+  "salesOpenAt": "2026-09-10T00:00:00Z", "salesCloseAt": "2026-10-10T23:59:00Z",
+  "sessions": [{ "startAt": "2026-10-15T02:00:00Z", "endAt": "2026-10-15T05:00:00Z", "capacity": 30 }],
+  "ticketTypes": [{ "sessionIndex": 0, "name": "General", "priceIdr": 75000 }],
+  "publish": false }
+```
+
+The server generates event/session/ticket IDs, stores `DRAFT` when `publish` is false, and returns 201 with the full organizer event view. `publish: true` runs the publication gate first.
+
+**`PUT /api/organizer/events/:id`** — replaces the submitted event/session/ticket configuration in one atomic nested write. Existing child IDs may be retained; omitted children are removed only when booking history permits. `publish: true` sets `PUBLISHED`; false saves `DRAFT`. Foreign/missing event IDs → `EVENT_NOT_FOUND` (404). Publication and field failures use the stable organizer error catalog.
+
 ## 4. Quota-exhaustion mapping
 
 Per the usage model §8, Worker-request, CPU, and D1 row/storage exhaustion all surface as `SERVICE_UNAVAILABLE` (503, `Retry-After` to midnight UTC where applicable) or `STORAGE_FULL` (503) for the storage cap — never raw 1027/1102/D1 errors, never partial bookings.
@@ -216,3 +238,14 @@ All catalog codes are adopted unchanged with their HTTP categories. Approved add
 | `BOOKING_ALREADY_CANCELLED` | 409 | The attendee's booking has already been cancelled; capacity is unchanged |
 | `BOOKING_CANCELLATION_CLOSED` | 409 | The booking can no longer be cancelled because its session has started or its state is closed |
 | `BOOKING_CANCELLATION_CONFLICT` | 409 | Booking state changed while cancellation was being attempted; refresh and retry |
+| `ORGANIZER_FORBIDDEN` | 403 | Authenticated user lacks the organizer role |
+| `EVENT_NAME_INVALID` / `EVENT_DESCRIPTION_INVALID` | 400 | Event text is missing or exceeds the documented bounds |
+| `VENUE_REQUIRED` / `VENUE_INVALID` | 400 | Event venue is missing or not in the active workspace |
+| `SESSION_REQUIRED` / `SESSION_INVALID` | 400 | Session time or room-capacity configuration is invalid |
+| `SESSION_OVERLAP` | 409 | Submitted sessions overlap |
+| `TICKET_LIST_INVALID` / `TICKET_INVALID` | 400 | Ticket configuration is malformed or not workspace-owned |
+| `SALES_WINDOW_INVALID` | 400 | Sales opening and closing times are invalid |
+| `TICKET_REQUIRED` | 400 | Publication requires at least one ticket type |
+| `PUBLICATION_INVALID` | 409 | Publication requires a future scheduled session and open sales window |
+| `CAPACITY_INVALID` | 400 | Capacity is invalid or below confirmed quantity |
+| `CAPACITY_IN_USE` / `SESSION_IN_USE` / `TICKET_IN_USE` | 409 | Existing booking history prevents destructive configuration change |

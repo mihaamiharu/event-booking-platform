@@ -137,6 +137,20 @@ Acceptance criteria:
 - Missing and foreign references return the same stable not-found outcome for reads and cancellation attempts.
 - Cancellation failures expose a safe, retryable recovery path without losing the booking reference.
 
+### Organizer lifecycle (R2 extension, Issue #69)
+
+#### ORG-001 — Organizer identity and authorization
+
+The platform shall identify a seeded organizer and restrict event-management operations to that role within the active learner workspace.
+
+#### ORG-002 — Event, room, and session management
+
+An authorized organizer shall be able to create and edit event drafts, assign a workspace venue/room, configure one or more sessions, and set a positive capacity for each session.
+
+#### ORG-003 — Ticket configuration and publication
+
+An authorized organizer shall be able to configure named IDR ticket types for sessions and publish an event only after its venue, future sessions, capacities, sales window, and ticket configuration pass validation.
+
 ### Simulated payment
 
 #### PAY-001 — Deterministic payment simulation
@@ -239,6 +253,10 @@ R1 shall present English product content, identify monetary values as IDR withou
 ### NFR-010 — Deterministic lifecycle transitions
 
 Lifecycle writes shall be atomic, bounded to the active workspace, and reproducible from explicit seed or manipulated-time fixtures. Core cancellation UI states shall expose accessible names, roles, focus, and error recovery without horizontal overflow.
+
+### NFR-011 — Organizer lifecycle safety
+
+Organizer writes shall be workspace-scoped, server-authoritative, atomic across event/session/ticket changes, and compatible with Cloudflare free-plan operation.
 
 ## 5. Accepted release decisions
 

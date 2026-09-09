@@ -78,6 +78,10 @@ export function isQaObservability(path: string): boolean {
   return path === "/qa/observability" || path === "/qa/observability/";
 }
 
+export function isOrganizer(path: string): boolean {
+  return path === "/organizer" || path === "/organizer/";
+}
+
 export function matchBookingRef(path: string): string | null {
   const m = /^\/bookings\/([^/]+)\/?$/.exec(path);
   return m ? decodeURIComponent(m[1]!) : null;

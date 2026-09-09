@@ -1,4 +1,4 @@
-# R1 Test Strategy
+# Test Strategy
 
 **Status:** Ready for review
 **Version:** 0.1
@@ -68,6 +68,7 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 
 - Test names and files carry requirement IDs (e.g. `bkg-003.idempotency.spec.ts`); CI lints that every R1 ID appears in the scenario matrix and has linked executable evidence (traceability stays executable).
 - Defect reports reference requirement IDs + seed version + workspace pseudonym + correlation ID; suspected controlled-defect-profile contamination is ruled out first via workspace reset (R-008).
+- The R2 organizer slice adds role authorization, nested event/session/ticket writes, publication gates, room-capacity boundaries, and public read-back to the same local/browser matrix.
 - Row-budget evidence: API tests assert `meta.rows_read/rows_written` ceilings from the usage model; failures file against the offending query with its `EXPLAIN QUERY PLAN`.
 - A11y evidence: keyboard-only E2E pass recording, focus-order notes, and measured contrast ratios attached to the UI slice PR, not just checkmarks.
 

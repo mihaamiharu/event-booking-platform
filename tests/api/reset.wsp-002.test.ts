@@ -121,7 +121,7 @@ describe("wsp-002 POST /api/workspaces/reset", () => {
     assert.equal(body.workspace.seedVersion, "r1-v1");
     assert.equal(body.reset.seedVersion, "r1-v1");
     assert.notEqual(body.workspace.seedReferenceAt, before.workspace.seedReferenceAt);
-    assert.ok(body.meta.rows_written <= 150, `rows_written ${body.meta.rows_written}`);
+    assert.ok(body.meta.rows_written <= 180, `rows_written ${body.meta.rows_written}`);
 
     // Old session died with the reset; fresh sign-in sees restored seed.
     const stale = await fetch(`${BASE}/api/bookings`, {

@@ -3,6 +3,7 @@ import {
   isBookings,
   isCheckout,
   isDemo,
+  isOrganizer,
   isQaObservability,
   isSignIn,
   Link,
@@ -19,6 +20,7 @@ import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
 import { SignIn } from "./routes/SignIn.tsx";
 import { QAObservability } from "./routes/QAObservability.tsx";
+import { Organizer } from "./routes/Organizer.tsx";
 import { getAttendee, signOut, type Attendee } from "./lib/api.ts";
 import { PRODUCT_NAME } from "./lib/constants.ts";
 
@@ -33,6 +35,7 @@ export function App() {
   const bookingsRoute = isBookings(path);
   const demoRoute = isDemo(path);
   const qaObservabilityRoute = isQaObservability(path);
+  const organizerRoute = isOrganizer(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
   const [attendee, setAttendee] = useState<Attendee | null>(null);
 
@@ -51,6 +54,8 @@ export function App() {
             ? "Demo controls"
             : qaObservabilityRoute
               ? "QA observability cockpit"
+              : organizerRoute
+                ? "Organizer dashboard"
               : bookingRef !== null
                 ? "Booking details"
                 : slug !== null
@@ -59,7 +64,7 @@ export function App() {
                     ? "Events"
                     : "Page not found";
     document.title = `${routeTitle} — ${PRODUCT_NAME}`;
-  }, [bookingRef, bookingsRoute, checkoutRoute, demoRoute, isEvents, qaObservabilityRoute, signInRoute, slug, path]);
+  }, [bookingRef, bookingsRoute, checkoutRoute, demoRoute, isEvents, organizerRoute, qaObservabilityRoute, signInRoute, slug, path]);
 
   const onSignOut = async () => {
     await signOut();
@@ -76,6 +81,8 @@ export function App() {
         <Bookings />
       ) : qaObservabilityRoute ? (
         <QAObservability />
+      ) : organizerRoute ? (
+        <Organizer />
       ) : demoRoute ? (
         <Demo />
       ) : bookingRef !== null ? (

@@ -49,6 +49,28 @@ R1 does not expose a status-changing organizer operation.
 
 R1 recognizes `SCHEDULED`, `CANCELLED`, and `COMPLETED`. Only `SCHEDULED` can be bookable, subject to time, sales-window, and capacity rules.
 
+## Organizer lifecycle (R2 extension, Issue #69)
+
+### BR-ORG-001 — Role-based management
+
+Only a user with role `ORGANIZER` in the active workspace may read the organizer dashboard or change event inventory. Attendees and missing sessions receive safe authorization outcomes.
+
+### BR-ORG-002 — Workspace-owned configuration
+
+Venue, event, session, and ticket IDs are always checked against the active workspace. A request cannot select a venue, event, or ownership through a different workspace's identifier.
+
+### BR-ORG-003 — Shared room capacity
+
+Capacity is configured per event session and is shared by every ticket type assigned to that session. Capacity must be positive and cannot be lower than confirmed quantity; cancelled bookings release capacity before an organizer may reduce it.
+
+### BR-ORG-004 — Publication gate
+
+An event remains `DRAFT` until publication succeeds. Publication requires a workspace venue, a valid future scheduled session, positive capacity, a closing sales time after now, and at least one non-negative-price ticket type. Invalid publication creates no partial change.
+
+### BR-ORG-005 — Atomic nested write
+
+An event update changes its parent, sessions, and ticket types in one D1 batch. Ticket prices are authoritative integers in IDR; existing booking price snapshots remain unchanged.
+
 ## Ticket selection and price
 
 ### BR-TKT-001 — Quantity boundary
@@ -157,3 +179,4 @@ R1 user-facing content is English only. Human-readable text is not used as a per
 - Multi-currency, conversion, tax, and booking fees.
 - Venue-specific time zones and daylight-saving transitions.
 - Refunds, temporary ticket holds, waitlists, and rescheduling.
+- Per-ticket-type inventory quotas, recurring events, and organizer moderation.

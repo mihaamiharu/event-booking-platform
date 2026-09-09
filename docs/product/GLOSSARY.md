@@ -6,6 +6,10 @@ This glossary gives product terms one stable meaning across requirements, design
 
 An authenticated user who discovers events and owns bookings inside one learner workspace.
 
+## Organizer
+
+An authenticated workspace user with the `ORGANIZER` role who can configure event drafts, rooms, sessions, capacity, ticket types, and publication state.
+
 ## Availability
 
 Whether a session can currently accept a requested ticket quantity under its publication, schedule, sales-window, and capacity rules.
@@ -73,3 +77,7 @@ The server-authoritative interval during which an otherwise eligible session acc
 ## Ticket type
 
 A named booking option for one session with its own unit price and availability status. All ticket types for a session share that session's total capacity in R1.
+
+## Room capacity
+
+The maximum number of confirmed attendees allowed for one event session at its assigned venue. It is shared across that session's ticket types.

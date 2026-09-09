@@ -2,7 +2,7 @@
 
 **Status:** Ready for review
 **Version:** 0.2
-**Scope:** Issues #10 and #66 — user experience before application implementation
+**Scope:** Issues #10, #66, and #69 — attendee and organizer user experience before application implementation
 **Sources:** INFORMATION-ARCHITECTURE, USER-FLOWS (UF-001…007), PERSONAS (Alya), ERROR-CATALOG, API-CONTRACT, NFR-002/003/009/010
 **Non-goals:** Framework/router choice (TDD §11), visual brand (PD-001 deferred), copy finalization beyond contract examples.
 
@@ -25,7 +25,7 @@
 └────────────────────────────────┘
 ```
 
-- Skip link → `<main>`; one `h1` per route; nav uses `<nav aria-label>`; signed-in state shows attendee menu + sign out, never the session token.
+- Skip link → `<main>`; one `h1` per route; nav uses `<nav aria-label>`; signed-in state shows attendee/organizer menu + sign out, never the session token.
 - Demo controls live in a bordered `<section aria-label="Demo controls">` pinned after the footer content — never inside business nav (acceptance criterion).
 - API states per route: loading skeleton → content | empty | error with retry. Refreshing booking detail never resubmits checkout (GET only).
 
@@ -123,6 +123,26 @@ Newest-first cards: reference, event name, session date (WIB), quantity, total I
 
 Status card (seed version, provisioned date, expiry date, days remaining), isolation explainer, expiry policy, reset flow (explicit confirm checkbox + destructive-styled button), rate-limit (`WORKSPACE_RATE_LIMITED` + retry time), reset-failure (`WORKSPACE_RESET_FAILED`, never imply success), expired-workspace (`WORKSPACE_EXPIRED` + "Start a new workspace" action). Never shows another workspace identifier. The status and reset surfaces share the same product card treatment as the attendee journey.
 
+### 3.8 `/organizer` event editor (ORG-001…003, UF-008)
+
+```text
+┌──────────────────┐
+│ h1 Shape the     │
+│ room, then sell  │
+│ the place        │
+│ Your events      │
+│ [Draft] [Published] │
+│ Event name       │
+│ Room / venue     │
+│ Session start/end│
+│ Room capacity    │
+│ Ticket name/price│
+│ [Save draft] [Publish] │
+└──────────────────┘
+```
+
+The editor uses native labels, date/time and number inputs, repeatable session/ticket groups, status text, and a safe retry panel. Drafts are visibly distinct and absent from public discovery until publication succeeds. At 360px, the editor stacks into one column without horizontal overflow.
+
 ## 4. Required-state matrix
 
 | State | Routes | UI pattern | Code |
@@ -134,6 +154,7 @@ Status card (seed version, provisioned date, expiry date, days remaining), isola
 | Not found | event detail, booking detail | identical missing/foreign state | `EVENT_NOT_FOUND`, `BOOKING_NOT_FOUND` |
 | Capacity conflict | checkout | remaining-capacity panel + reselect | `SESSION_NOT_BOOKABLE`, `CAPACITY_INSUFFICIENT`, `IDEMPOTENCY_CONFLICT` |
 | Cancellation lifecycle | booking detail/list | confirmation dialog, disabled pending action, status/retry panel | `BOOKING_ALREADY_CANCELLED`, `BOOKING_CANCELLATION_CLOSED`, `BOOKING_CANCELLATION_CONFLICT` |
+| Organizer lifecycle | organizer dashboard/editor | role gate, draft editor, room capacity and ticket configuration, publish/retry state | `ORGANIZER_FORBIDDEN`, `VENUE_INVALID`, `SESSION_OVERLAP`, `TICKET_REQUIRED`, `PUBLICATION_INVALID`, `CAPACITY_INVALID` |
 | Payment decline | checkout | decline panel, selection preserved | `PAYMENT_DECLINED` (422) |
 | Workspace expiration | all | banner + new-workspace action | `WORKSPACE_EXPIRED` (410) |
 | Reset failure | demo | failure panel, state explicitly unknown | `WORKSPACE_RESET_FAILED` |

@@ -33,9 +33,10 @@ describe("wsp-004 POST /api/workspaces/provision", () => {
     assert.ok(Date.parse(body.workspace.seedReferenceAt) > 0);
     assert.ok(Date.parse(body.workspace.expiresAt) > Date.parse(body.workspace.seedReferenceAt));
     // Writes meter local-only: D1 bills index maintenance per insert, so the
-    // 30-row seed meters ~114 vs the usage-model ≤45 estimate. Preview
+    // 31-row seed (including the organizer account) meters ~127 vs the
+    // usage-model ≤45 estimate. Preview
     // calibration + budget review belong to S8 (NFR-001); see S3 PR risks.
-    assert.ok(body.meta.rows_written <= 120);
+    assert.ok(body.meta.rows_written <= 150);
   });
 
   it("reuses the existing workspace when the cookie is valid", async () => {

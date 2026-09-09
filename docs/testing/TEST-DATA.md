@@ -1,4 +1,4 @@
-# R1 Seed and Test Data Specification
+# Seed and Test Data Specification
 
 **Status:** Ready for review
 **Seed version:** `r1-v1`
@@ -22,6 +22,14 @@ Each provision or reset stores one `seed_reference_at` instant called `T0`.
 | `attendee_maya` | `maya.attendee@example.test` | `Booked123!` | One confirmed, cancellable booking for two General tickets |
 
 Credentials are intentionally public demo data and valid only inside the active learner workspace. Passwords must still be hashed at rest.
+
+## Interactive organizer account (R2 extension, Issue #69)
+
+| Seed key | Email | Password | Initial management state |
+| --- | --- | --- | --- |
+| `organizer_raka` | `raka.organizer@example.test` | `Organize123!` | Can manage all event configuration in the active workspace |
+
+The organizer role is stored on the workspace-scoped user row. It cannot be selected through a request body or elevated by an attendee.
 
 ## Non-interactive fixture identity
 
@@ -128,6 +136,8 @@ After reset:
 - Alex has no booking history;
 - Maya has exactly one documented confirmed booking with `cancelled_at` and `cancellation_id` unset;
 - the available session has 18 remaining places;
+- the organizer account can sign in with `Organize123!`; and
+- organizer-created events are removed, restoring the five documented seed events and their original room capacities/tickets.
 - the sold-out session has zero remaining places;
 - draft, cancelled, and past fixtures remain excluded from the public catalog;
 - no user-created booking, session mutation, or prior scenario flag remains; and

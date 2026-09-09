@@ -13,6 +13,11 @@ Events
 └── My bookings
     └── Booking detail
 
+Organizer workspace
+└── Event editor
+    ├── Room and session capacity
+    └── Ticket types and publication
+
 Demo controls
 └── Reset workspace
 
@@ -35,6 +40,7 @@ Route paths are product-level proposals. The router implementation may refine pa
 | `/bookings/:bookingReference` | Booking confirmation and detail | Attendee | `BKG-004`, `BKG-006`, `BKG-007` |
 | `/demo` | Workspace status and reset | Workspace holder | `WSP-002` through `WSP-004` |
 | `/qa/observability` | Safe request exercises and browser-session trace | Local/preview QA only; visibly disabled in production by default | `NFR-004`, `NFR-005`, `NFR-006` |
+| `/organizer` | Organizer event dashboard and editor | Organizer | `ORG-001` through `ORG-003`, `NFR-011` |
 
 ## Global navigation
 
@@ -43,6 +49,7 @@ Route paths are product-level proposals. The router implementation may refine pa
 - My bookings is visible to an authenticated attendee.
 - Sign in is visible when signed out; the attendee menu and sign out are visible when signed in.
 - Demo controls are visually separate from the product's business navigation.
+- Organizer is visible only to an authenticated organizer and remains separate from attendee booking navigation.
 
 ## Screen contracts
 
@@ -81,6 +88,10 @@ exercises. The browser-session timeline shows client-observed status,
 duration, response code, correlation ID, and safe error references. External
 Cloudflare/Grafana links are configured per environment and remain separate
 from client evidence; raw logs and provider credentials are never rendered.
+
+### Organizer dashboard
+
+Lists all workspace events and provides a draft editor for event name, description, venue/room, sales window, session times, room capacity, ticket names, and IDR prices. A draft is private until publication validation succeeds; published configuration is then visible through attendee discovery.
 
 ## Responsive priorities
 

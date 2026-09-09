@@ -23,6 +23,9 @@ Executable scenario IDs, evidence dimensions, and linked test files are maintain
 | `WSP-002` | `UF-001` | `BR-WSP-003` | Demo controls | Mutated then reset workspace | API, database and cross-workspace tests |
 | `WSP-003` | `UF-001`, `UF-002` | `BR-WSP-001`, `BR-WSP-002` | Demo controls, sign in | Active and expired workspace contexts | Time-boundary and cleanup tests |
 | `WSP-004` | `UF-001` | Seed invariants | Product entry | Fresh, existing and rate-limited contexts | API, atomic seed and recovery tests |
+| `ORG-001` | `UF-008` | `BR-ORG-001`, `BR-ORG-002` | Organizer dashboard and session | Raka organizer plus Alex attendee | API authorization, workspace isolation, UI access tests |
+| `ORG-002` | `UF-008` | `BR-ORG-002`, `BR-ORG-003` | Organizer event editor | Seed venues, sessions, and room capacities | API, DB, UI form and E2E tests |
+| `ORG-003` | `UF-008` | `BR-ORG-004`, `BR-ORG-005` | Organizer editor and attendee discovery | Draft-to-published event with ticket types | API, public read-back, UI and E2E tests |
 
 ## Non-functional traceability
 
@@ -38,6 +41,7 @@ Executable scenario IDs, evidence dimensions, and linked test files are maintain
 | `NFR-008` | Release definition | Current Chromium, Firefox and WebKit execution |
 | `NFR-009` | Product decisions and business rules | English copy, IDR formatting, and WIB display checks |
 | `NFR-010` | Booking lifecycle decision and cancellation contract | Atomic transition, deterministic edge fixtures, accessible recovery and responsive E2E |
+| `NFR-011` | Organizer lifecycle decision and workspace security | Role authorization, atomic nested write, publication gate, capacity boundary, and responsive E2E |
 
 ## Traceability maintenance
 

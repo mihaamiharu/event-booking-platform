@@ -10,9 +10,10 @@ interface AppShellProps {
   onSignOut: () => void;
 }
 
-function isCurrent(path: string, target: "events" | "bookings" | "sign-in"): boolean {
+function isCurrent(path: string, target: "events" | "bookings" | "organizer" | "sign-in"): boolean {
   if (target === "events") return path === "/" || path.startsWith("/events");
   if (target === "bookings") return path.startsWith("/bookings");
+  if (target === "organizer") return path.startsWith("/organizer");
   return path.startsWith("/sign-in");
 }
 
@@ -47,7 +48,7 @@ export function AppShell({ children, path, productName, attendee, onSignOut }: A
             </span>
             <span className="brand-copy">
               <strong>{productName}</strong>
-              <span>Attendee booking</span>
+              <span>{attendee?.role === "ORGANIZER" ? "Organizer workspace" : "Attendee booking"}</span>
             </span>
           </Link>
           <nav className="primary-nav" aria-label="Primary">
@@ -65,9 +66,18 @@ export function AppShell({ children, path, productName, attendee, onSignOut }: A
             >
               My bookings
             </Link>
+            {attendee?.role === "ORGANIZER" && (
+              <Link
+                to="/organizer"
+                className={`nav-link ${isCurrent(path, "organizer") ? "is-current" : ""}`}
+                aria-current={isCurrent(path, "organizer") ? "page" : undefined}
+              >
+                Organizer
+              </Link>
+            )}
             {attendee ? (
               <div className="account-menu">
-                <span className="user-chip" aria-label="Signed-in attendee">
+                <span className="user-chip" aria-label={`Signed-in ${attendee.role === "ORGANIZER" ? "organizer" : "attendee"}`}>
                   <span className="avatar" aria-hidden="true">
                     {initials(attendee.displayName)}
                   </span>

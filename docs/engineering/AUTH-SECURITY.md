@@ -1,4 +1,4 @@
-# R1 Authentication and Workspace Security Design
+# Authentication and Workspace Security Design
 
 **Status:** Ready for review
 **Version:** 0.1
@@ -28,7 +28,7 @@ Rules 1–2 of ROLES-AND-PERMISSIONS are structural: no endpoint reads identity 
 - Credentials are public demo data valid only inside their workspace (PD-002); identical emails across workspaces are distinct users via `(workspace_id, email)`.
 - Sign-in: look up `(workspace_id, email)`, verify with WebCrypto PBKDF2-SHA256 (salt per user, random per workspace at provision; identical passwords hash differently — allowed, since NFR-007 requires identical logical state, not identical hash bytes), then insert a `sessions` row and set `ebp_session`. Wrong email and wrong password return the identical `AUTH_INVALID_CREDENTIALS` (401) after identical work (no enumeration oracle, no timing shortcut).
 - Session token: 256-bit `crypto.getRandomValues`, stored as SHA-256 hash (`token_hash` PK) — a database read never yields a usable token. Cookie: `HttpOnly; Secure (production); SameSite=Lax; Path=/api; Max-Age=604800`. Lifetime 7 days absolute, sliding on use, capped by workspace expiry; sign-out sets `revoked_at` and clears the cookie (repeat sign-out still 204).
-- No registration, recovery, or role elevation exists in R1; any such parameter is ignored, never an error that reveals internals.
+- No registration, recovery, or role elevation exists. The R2 organizer extension adds a seeded `ORGANIZER` role; role is read from the workspace-scoped user row and never accepted from a request body.
 
 ### 3.1 Password-hashing budget (10 ms CPU cap)
 
@@ -54,6 +54,8 @@ Turnstile verification is one server-side subrequest inside the 50-subrequest bu
 ## 6. CSRF posture
 
 Same-origin architecture (static assets + `/api/*` on one host, no CORS, no `Access-Control-Allow-Origin`): primary defense is `SameSite=Lax` on both cookies, which blocks cross-site authenticated POSTs. Defense in depth: state-changing endpoints (`POST`/`DELETE`) require `Content-Type: application/json` and reject simple-form-encoded bodies with `VALIDATION_FAILED`; `Origin`/`Referer`, when present, must match the deployment host. No CSRF tokens in R1 — justified by same-origin + Lax + JSON-only mutations; any future cross-origin client requires revisiting this section.
+
+Organizer writes use the same workspace cookie plus session lookup, then require `users.role = 'ORGANIZER'` inside the active workspace. Event, venue, session, and ticket identifiers are revalidated server-side before the nested write batch; attendee sessions cannot use organizer endpoints.
 
 ## 7. Logging, redaction, correlation
 

@@ -16,6 +16,7 @@ import { events } from "./routes/events.ts";
 import { session } from "./routes/session.ts";
 import { workspaces } from "./routes/workspaces.ts";
 import { qaObservabilityConfig } from "./qa.ts";
+import { organizer } from "./routes/organizer.ts";
 import {
   getCookie,
   isExpired,
@@ -133,6 +134,7 @@ app.route("/api/events", events);
 app.route("/api/session", session);
 app.route("/api/checkout", checkout);
 app.route("/api/bookings", bookings);
+app.route("/api/organizer", organizer);
 
 app.notFound((c) => {
   if (c.req.path.startsWith("/api/")) {

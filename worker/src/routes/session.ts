@@ -32,6 +32,7 @@ interface UserRow {
   display_name: string;
   password_hash: string;
   password_salt: string;
+  role: "ATTENDEE" | "ORGANIZER";
 }
 
 function invalidCredentials() {
@@ -96,7 +97,7 @@ session.post("/", async (c) => {
   const user = await first<UserRow>(
     meta,
     db,
-    "SELECT id, email, display_name, password_hash, password_salt FROM users WHERE workspace_id = ?1 AND email = ?2",
+    "SELECT id, email, display_name, password_hash, password_salt, role FROM users WHERE workspace_id = ?1 AND email = ?2",
     ws.id,
     email,
   );
@@ -128,6 +129,7 @@ session.post("/", async (c) => {
   return c.json(
     {
       attendee: { email: user.email, displayName: user.display_name },
+      role: user.role,
       meta,
     },
     200,

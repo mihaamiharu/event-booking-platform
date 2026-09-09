@@ -15,6 +15,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 function migratedDb(): DatabaseSync {
   const db = new DatabaseSync(":memory:");
   applyMigration(db, readFileSync(path.join(root, "db/migrations/0001_init.sql"), "utf8"));
+  applyMigration(db, readFileSync(path.join(root, "db/migrations/0004_organizer_management.sql"), "utf8"));
   return db;
 }
 
@@ -62,7 +63,7 @@ describe("wsp-003 cleanup drain", () => {
     for (const t of ["users", "venues", "events", "event_sessions", "ticket_types", "bookings", "sessions"]) {
       assert.equal(count(db, t, b.workspaceId), 0, `${t} drained`);
     }
-    assert.equal(count(db, "users", a.workspaceId), 3);
+    assert.equal(count(db, "users", a.workspaceId), 4);
     assert.equal(count(db, "events", a.workspaceId), 5);
     assert.equal(count(db, "bookings", a.workspaceId), 2);
   });

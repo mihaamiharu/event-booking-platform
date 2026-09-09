@@ -5,6 +5,12 @@
   "compatibility_date": "2026-08-01",
   "workers_dev": true,
   "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "labs.testingwithekki.com",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": "../client/dist/client",
     "binding": "ASSETS",
@@ -16,6 +22,7 @@
     "DEPLOYMENT_ENV": "production",
     "QA_CLOUDFLARE_LOGS_URL": "",
     "QA_GRAFANA_URL": "",
+    "QA_OBSERVABILITY_ENABLED": "false",
     "SCENARIO_PROFILES_ENABLED": "false",
     "SCENARIO_PROFILE": "baseline"
   },
@@ -24,8 +31,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ebp-r1-local",
-      "database_id": "local-s1-placeholder",
+      "database_name": "ebp-r1-prod",
+      "database_id": "ca3fb446-fb40-496c-b781-2e966d137930",
       "migrations_dir": "../db/migrations"
     }
   ],
@@ -33,6 +40,7 @@
     "preview": {
       "vars": {
         "DEPLOYMENT_ENV": "preview",
+        "QA_OBSERVABILITY_ENABLED": "true",
         "SCENARIO_PROFILES_ENABLED": "false",
         "SCENARIO_PROFILE": "baseline"
       },

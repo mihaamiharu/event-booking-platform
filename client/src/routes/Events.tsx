@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ApiError, api } from "../lib/api.ts";
+import { ApiError, api, errorReference } from "../lib/api.ts";
 import { EventCard, type CatalogEvent } from "../components/EventCard.tsx";
 
 interface CatalogResponse {
@@ -26,7 +26,7 @@ export function Events() {
         setState(res.data.length === 0 ? { kind: "empty" } : { kind: "ready", items: res.data });
       } catch (e) {
         if (cancelled) return;
-        setState({ kind: "error", code: e instanceof ApiError ? e.code : "UNEXPECTED_ERROR", retry: load });
+        setState({ kind: "error", code: errorReference(e), retry: load });
       }
     };
     void load();

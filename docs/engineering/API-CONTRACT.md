@@ -29,7 +29,7 @@
 ```
 
 - `code` is stable and listed in §6; `message` is English R1 copy and may change without notice.
-- `correlationId` is present on 409/422/429/5xx and on auth failures for operator lookup; never include stack traces, SQL, secrets, tokens, or cross-workspace existence clues.
+- `correlationId` is present on 409/422/429/5xx and on auth failures for operator lookup; the same opaque request ID is returned as `x-correlation-id` and is searchable in structured logs. Never include stack traces, SQL, secrets, tokens, or cross-workspace existence clues.
 - Validation failures create no booking and consume no capacity.
 
 ### 1.3 Context and authorization

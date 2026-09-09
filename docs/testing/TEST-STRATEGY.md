@@ -13,7 +13,7 @@
 | API contract | Deployed Worker + D1 (local first) | Every operation × success/validation/auth/not-found/conflict/decline/rate-limit; stable codes; `meta.rows_read/rows_written` budget assertions | Browser rendering |
 | Database state | D1 directly (local) | Booking/item/payment rows, price snapshots, capacity counters, ownership scoping, reset invariants, index usage (`EXPLAIN QUERY PLAN` on hot paths) | HTTP semantics |
 | UI component + a11y | Component harness + browser | UI-DESIGN §4 states, §6 annotations: keyboard paths, names/roles, focus moves, error association, contrast values | Business logic |
-| E2E journeys | Full stack (local, preview smoke) | UF-001…006 end to end on Playwright Chromium at 360px and desktop viewports (Firefox/WebKit excluded per owner decision 2026-09-08, NFR-008) | Quota exhaustion, abuse soaks |
+| E2E journeys | Full stack (local, preview smoke) | UF-001…006 end to end on Playwright Chromium, Firefox, and WebKit at 360px and desktop viewports | Quota exhaustion, abuse soaks |
 | Concurrency spike | Local + preview | DATA-DESIGN §6: ≥20 parallel last-seat checkouts; idempotent replay/conflict suite | Production load |
 | Workspace lifecycle | API + D1 | Provision/reuse/rate-limit, reset isolation + invariants, expiry boundary via direct `last_active_at` manipulation (**local D1 only**), cleanup-batch drain | Real 7-day waits |
 | Security negative | API + logs | AUTH-SECURITY T-01…T-12 verbatim | Penetration testing beyond R1 scope |
@@ -45,7 +45,7 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 | `NFR-005` | — | — | — | — | — | ID-in-name lint + PR checklist (§5) |
 | `NFR-006` | — | — | no card columns; sim codes unpersisted | no card fields | — | T-10 log redaction grep |
 | `NFR-007` | — | — | reset-twice diff (logical equality modulo T0/hashes) | — | — | — |
-| `NFR-008` | — | — | — | — | Chromium (Firefox/WebKit excluded per owner decision 2026-09-08) | — |
+| `NFR-008` | — | — | — | — | Chromium + Firefox + WebKit | — |
 | `NFR-009` | formatter | `currency`/`priceIdr` shapes | integer storage, UTC instants | `IDR 150.000` + `WIB` rendering | — | — |
 
 ## 3. Deterministic seed usage
@@ -63,12 +63,14 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 
 ## 5. Evidence and defect conventions (NFR-005, NFR-007 in RISKS)
 
-- Test names and files carry requirement IDs (e.g. `bkg-003.idempotency.spec.ts`); CI lints that every R1 ID appears at least once (traceability stays executable).
+- Test names and files carry requirement IDs (e.g. `bkg-003.idempotency.spec.ts`); CI lints that every R1 ID appears in the scenario matrix and has linked executable evidence (traceability stays executable).
 - Defect reports reference requirement IDs + seed version + workspace pseudonym + correlation ID; suspected controlled-defect-profile contamination is ruled out first via workspace reset (R-008).
 - Row-budget evidence: API tests assert `meta.rows_read/rows_written` ceilings from the usage model; failures file against the offending query with its `EXPLAIN QUERY PLAN`.
 - A11y evidence: keyboard-only E2E pass recording, focus-order notes, and measured contrast ratios attached to the UI slice PR, not just checkmarks.
 
 ## 6. Manual and AI-assisted workflow
 
-- Manual: exploratory passes per release (stale-availability, double-submit, back-button-after-checkout, expired-session mid-checkout), recorded as charters with requirement links; manual findings become automated regressions before merge.
+- Manual: exploratory passes per release (stale-availability, double-submit, back-button-after-checkout, expired-session mid-checkout), recorded as charters with requirement links in `docs/testing/manual/`; manual findings become automated regressions before merge.
 - AI-assisted authoring/debugging: generators may draft cases from this strategy and the contract fixtures, but every generated test must cite its requirement ID and fail-then-pass against a deliberate fault (validation flip, capacity race, revoked session) before counting as evidence. Generated tests that cannot be traced to §2 are rejected in review.
+
+The executable evidence matrix is maintained in [SCENARIO-MATRIX.json](SCENARIO-MATRIX.json) and checked by `npm run test:traceability`. Fault-admission expectations are documented in [MUTATION-ADMISSION.md](MUTATION-ADMISSION.md).

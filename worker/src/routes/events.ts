@@ -5,6 +5,7 @@ import type { AppContext } from "../app.ts";
 import { all, first, newMeta } from "../db.ts";
 import { err } from "../errors.ts";
 import { touchActivity } from "./workspaces.ts";
+import { scenarioEnabled } from "../scenario.ts";
 
 export const events = new Hono<AppContext>();
 
@@ -106,7 +107,7 @@ events.get("/", async (c) => {
     }
   }
 
-  await touchActivity(meta, db, ws.id, new Date().toISOString());
+  await touchActivity(meta, db, ws.id, new Date().toISOString(), !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json({
     data: [...bySlug.values()].map((e) => e.item),
     pagination: { page, perPage, total },
@@ -214,7 +215,7 @@ events.get("/:slug", async (c) => {
     };
   });
 
-  await touchActivity(meta, db, ws.id, new Date().toISOString());
+  await touchActivity(meta, db, ws.id, new Date().toISOString(), !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json({
     data: {
       slug: event.slug,

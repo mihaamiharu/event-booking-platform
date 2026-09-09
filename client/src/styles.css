@@ -646,6 +646,7 @@ h2 {
   display: grid;
   align-items: start;
   gap: var(--space-5);
+  min-width: 0;
 }
 
 .detail-layout {
@@ -839,6 +840,8 @@ h2 {
 .field input,
 .field select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 48px;
   padding: 10px 12px;
   color: var(--ink);
@@ -876,6 +879,13 @@ form > .button,
 
 .checkout-form-card form {
   max-width: 640px;
+  min-width: 0;
+}
+
+.checkout-form-card,
+.order-summary {
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .order-summary {

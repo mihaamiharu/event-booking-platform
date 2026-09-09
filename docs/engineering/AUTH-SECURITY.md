@@ -57,7 +57,7 @@ Same-origin architecture (static assets + `/api/*` on one host, no CORS, no `Acc
 
 ## 7. Logging, redaction, correlation
 
-- Log allowlist per request: correlation ID (UUIDv7 generated per request, returned on 409/422/429/5xx), route, method, status, duration/CPU ms, workspace pseudonym (`sha256(workspaceId)[:8]`, never the raw ID), stable error code.
+- Log allowlist per request: opaque correlation ID generated per request and returned on 409/422/429/5xx, route, method, status, duration/CPU ms, workspace pseudonym (`sha256(workspaceId)[:8]`, never the raw ID), stable error code. The ID is also returned in the `x-correlation-id` header.
 - Never logged: passwords, raw or hashed session tokens, workspace HMAC material, Turnstile tokens, payment simulation codes, emails beyond the sign-in attempt counter key (counters store hashes, not addresses).
 - Production sampling per usage-model §7 with always-log on 4xx/5xx, checkout conflict/decline, provision/reset rejection, D1-limit errors, cleanup summaries. Workers Logs Free (200k events/day, 3-day retention) is sufficient at R1 scale with sampling.
 

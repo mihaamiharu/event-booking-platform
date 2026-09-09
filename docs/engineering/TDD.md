@@ -100,7 +100,7 @@ The binding design is specified in [R1 authentication and workspace security](AU
 
 ## 10. Observability
 
-Worker logs include request correlation ID, route, status, duration, workspace pseudonym, and stable error code. Logs must not contain passwords, session tokens, simulated payment inputs, or unnecessary personal data.
+Worker logs include request correlation ID, route, status, duration, workspace pseudonym, and stable error code as JSON. Error responses expose the same ID in the body and `x-correlation-id` header. Logs must not contain passwords, session tokens, simulated payment inputs, or unnecessary personal data. See [OBSERVABILITY.md](OBSERVABILITY.md).
 
 ## 11. Deferred decisions
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ApiError, api, clearAttendee } from "../lib/api.ts";
+import { ApiError, api, errorReference, clearAttendee } from "../lib/api.ts";
 import { StatusBadge } from "../components/StatusBadge.tsx";
 
 // Workspace controls (WSP-002/003, UF-001; UI-DESIGN §3.7). Status card plus
@@ -41,7 +41,7 @@ export function Demo() {
         if (!cancelled) {
           setState({
             kind: "error",
-            code: e instanceof ApiError ? e.code : "UNEXPECTED_ERROR",
+            code: errorReference(e),
             retry: load,
           });
         }
@@ -69,12 +69,12 @@ export function Demo() {
             await attemptReset(token);
           } catch (retryErr) {
             setResetError(
-              retryErr instanceof ApiError ? `${retryErr.code}: ${retryErr.message}` : "UNEXPECTED_ERROR",
+              retryErr instanceof ApiError ? `${errorReference(retryErr)}: ${retryErr.message}` : "UNEXPECTED_ERROR",
             );
           }
         }
       } else {
-        setResetError(err instanceof ApiError ? `${err.code}: ${err.message}` : "UNEXPECTED_ERROR");
+        setResetError(err instanceof ApiError ? `${errorReference(err)}: ${err.message}` : "UNEXPECTED_ERROR");
       }
     } finally {
       setResetting(false);

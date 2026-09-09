@@ -18,6 +18,7 @@ import {
   sha256Hex,
 } from "../session.ts";
 import { touchActivity } from "./workspaces.ts";
+import { scenarioEnabled } from "../scenario.ts";
 import { getCookie, requestIsSecure } from "../workspace.ts";
 
 const SIGNIN_SCOPE = "signin-fail";
@@ -123,7 +124,7 @@ session.post("/", async (c) => {
     user.id,
     sessionExpiryIso(nowMs),
   );
-  await touchActivity(meta, db, ws.id, nowIso);
+  await touchActivity(meta, db, ws.id, nowIso, !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json(
     {
       attendee: { email: user.email, displayName: user.display_name },
@@ -156,7 +157,7 @@ session.delete("/", async (c) => {
       ws.id,
     );
   }
-  await touchActivity(meta, db, ws.id, nowIso);
+  await touchActivity(meta, db, ws.id, nowIso, !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return new Response(null, {
     status: 204,
     headers: { "set-cookie": clearSessionCookieHeader(secure) },

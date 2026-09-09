@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "../router.tsx";
-import { ApiError, api, getAttendee } from "../lib/api.ts";
+import { ApiError, api, errorReference, getAttendee } from "../lib/api.ts";
 import { formatIdr, formatWibDate } from "../lib/format.ts";
 import { StatusBadge } from "../components/StatusBadge.tsx";
 
@@ -43,7 +43,7 @@ export function Bookings() {
         if (e instanceof ApiError && e.code === "AUTH_REQUIRED") {
           setState({ kind: "signin" });
         } else {
-          setState({ kind: "error", code: e instanceof ApiError ? e.code : "UNEXPECTED_ERROR", retry: load });
+          setState({ kind: "error", code: errorReference(e), retry: load });
         }
       }
     };

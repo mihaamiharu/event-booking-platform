@@ -7,8 +7,10 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "test:e2e": "playwright test",
-    "install:browsers": "playwright install chromium",
-    "install:browsers:with-deps": "playwright install --with-deps chromium"
+    "install:browsers": "playwright install chromium firefox webkit",
+    "install:browsers:with-deps": "playwright install --with-deps chromium firefox webkit",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

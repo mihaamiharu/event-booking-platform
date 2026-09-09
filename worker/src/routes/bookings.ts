@@ -6,6 +6,7 @@ import type { AppContext } from "../app.ts";
 import { all, first, newMeta } from "../db.ts";
 import { err } from "../errors.ts";
 import { resolveSession } from "../session.ts";
+import { scenarioEnabled } from "../scenario.ts";
 import { touchActivity } from "./workspaces.ts";
 
 function parsePaging(url: URL): { page: number; perPage: number } | Response {
@@ -73,7 +74,7 @@ bookings.get("/", async (c) => {
     (page - 1) * perPage,
   );
 
-  await touchActivity(meta, db, ws.id, new Date(nowMs).toISOString());
+  await touchActivity(meta, db, ws.id, new Date(nowMs).toISOString(), !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json({
     data: rows.map((r) => ({
       reference: r.reference,
@@ -101,6 +102,7 @@ bookings.get("/:reference", async (c) => {
     return err(401, "AUTH_REQUIRED", { message: "Sign in to view bookings." });
   }
 
+  const ownershipLeak = scenarioEnabled(c.env, "bkg-ownership-leak");
   const row = await first<{
     reference: string;
     slug: string;
@@ -127,16 +129,14 @@ bookings.get("/:reference", async (c) => {
        JOIN event_sessions s ON s.id = b.event_session_id
        JOIN booking_items i ON i.booking_id = b.id
        JOIN ticket_types t ON t.id = i.ticket_type_id
-      WHERE b.workspace_id = ?1 AND b.user_id = ?2 AND b.reference = ?3`,
-    ws.id,
-    session.userId,
-    reference,
+      WHERE b.workspace_id = ?1 ${ownershipLeak ? "" : "AND b.user_id = ?2"} AND b.reference = ?${ownershipLeak ? "2" : "3"}`,
+    ...(ownershipLeak ? [ws.id, reference] : [ws.id, session.userId, reference]),
   );
   if (!row) {
     return err(404, "BOOKING_NOT_FOUND", { message: "Booking not found." });
   }
 
-  await touchActivity(meta, db, ws.id, new Date(nowMs).toISOString());
+  await touchActivity(meta, db, ws.id, new Date(nowMs).toISOString(), !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json({
     data: {
       reference: row.reference,

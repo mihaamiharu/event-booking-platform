@@ -3,3 +3,8 @@
 WORKSPACE_SECRET=local-dev-only-workspace-secret
 SESSION_SECRET=local-dev-only-session-secret
 TURNSTILE_SECRET=dummy-disabled-locally
+DEPLOYMENT_ENV=local
+# Teaching defects are disabled by default. Set both flags explicitly for a
+# local/disposable practice run; production ignores all scenario profiles.
+SCENARIO_PROFILES_ENABLED=false
+SCENARIO_PROFILE=baseline

@@ -1,26 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link } from "../router.tsx";
 import { ApiError, api } from "../lib/api.ts";
-import { formatIdr } from "../lib/format.ts";
-
-interface CatalogItem {
-  slug: string;
-  name: string;
-  venue: { name: string; city: string };
-  dateRange: { startAt: string; endAt: string };
-  startingPriceIdr: number;
-  currency: string;
-  availabilityStatus: "AVAILABLE" | "SOLD_OUT";
-}
+import { EventCard, type CatalogEvent } from "../components/EventCard.tsx";
 
 interface CatalogResponse {
-  data: CatalogItem[];
+  data: CatalogEvent[];
   pagination: { page: number; perPage: number; total: number };
 }
 
 type State =
   | { kind: "loading" }
-  | { kind: "ready"; items: CatalogItem[] }
+  | { kind: "ready"; items: CatalogEvent[] }
   | { kind: "empty" }
   | { kind: "error"; code: string; retry: () => void };
 
@@ -46,49 +35,69 @@ export function Events() {
     };
   }, []);
 
+  const items = state.kind === "ready" ? state.items : [];
+
   return (
     <>
-      <h1>Events</h1>
+      <section className="page-heading events-heading" aria-labelledby="events-heading">
+        <div>
+          <p className="eyebrow">R1 attendee booking</p>
+          <h1 id="events-heading">Find your next event</h1>
+          <p className="lede">
+            Explore upcoming sessions, compare availability, and keep the booking details that matter.
+          </p>
+        </div>
+        {state.kind === "ready" && (
+          <div className="heading-stat" aria-label={`${items.length} published events`}>
+            <strong>{items.length}</strong>
+            <span>published events</span>
+          </div>
+        )}
+      </section>
+
       {state.kind === "loading" && (
-        <div className="skeleton" aria-busy="true">
-          <div aria-hidden="true">Loading events…</div>
-          <div aria-hidden="true">Loading events…</div>
+        <div className="skeleton-grid" aria-busy="true">
+          <div className="skeleton-card" aria-hidden="true" />
+          <div className="skeleton-card" aria-hidden="true" />
         </div>
       )}
       {state.kind === "empty" && (
-        <div className="empty">
-          <p>No published events right now.</p>
-          <button type="button" onClick={() => window.location.reload()}>
+        <div className="state-card empty">
+          <p className="eyebrow">Nothing scheduled</p>
+          <h2>No published events right now.</h2>
+          <p>Check again soon for the next session.</p>
+          <button className="button button-secondary" type="button" onClick={() => window.location.reload()}>
             Retry
           </button>
         </div>
       )}
       {state.kind === "error" && (
-        <div className="error" role="alert">
-          <p>Could not load events ({state.code}).</p>
-          <button type="button" onClick={state.retry}>
+        <div className="state-card error" role="alert">
+          <p className="eyebrow">Could not load events</p>
+          <h2>Something interrupted the event list.</h2>
+          <p>Reference: {state.code}</p>
+          <button className="button button-secondary" type="button" onClick={state.retry}>
             Retry
           </button>
         </div>
       )}
       {state.kind === "ready" && (
-        <ul className="cards">
-          {state.items.map((e) => (
-            <li key={e.slug}>
-              <article className="card" aria-labelledby={`event-${e.slug}`}>
-                <h2 id={`event-${e.slug}`}>{e.name}</h2>
-                <p className="muted">
-                  {e.venue.name} · {e.venue.city}
-                </p>
-                <p className="price">
-                  From {formatIdr(e.startingPriceIdr)} ·{" "}
-                  <span className="badge">{e.availabilityStatus === "AVAILABLE" ? "Available" : "Sold out"}</span>
-                </p>
-                <Link to={`/events/${e.slug}`}>View details</Link>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <section className="content-section" aria-labelledby="upcoming-events-heading">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Open for booking</p>
+              <h2 id="upcoming-events-heading">Upcoming events</h2>
+            </div>
+            <span className="muted">Availability changes as bookings are confirmed.</span>
+          </div>
+          <ul className="cards event-grid">
+            {state.items.map((event) => (
+              <li key={event.slug}>
+                <EventCard event={event} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </>
   );

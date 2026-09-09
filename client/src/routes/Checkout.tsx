@@ -80,10 +80,11 @@ export function Checkout() {
   if (state.kind === "loading") {
     return (
       <>
-        <h1>Checkout</h1>
-        <div className="skeleton" aria-busy="true">
-          <div aria-hidden="true">Loading checkout…</div>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Reservation</p>
+          <h1>Loading checkout</h1>
         </div>
+        <div className="skeleton-card skeleton-detail" aria-busy="true" aria-label="Loading checkout" />
       </>
     );
   }
@@ -91,10 +92,16 @@ export function Checkout() {
     const next = encodeURIComponent(`/checkout?${params.toString()}`);
     return (
       <>
-        <h1>Checkout</h1>
-        <div className="empty">
-          <p>Sign in to complete your booking.</p>
-          <Link to={`/sign-in?next=${next}`}>Sign in</Link>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Reservation</p>
+          <h1>Sign in to complete your booking</h1>
+          <p className="lede">Your event selection is saved while you sign in.</p>
+        </div>
+        <div className="state-card empty">
+          <p>Sign in to continue to the simulated payment step.</p>
+          <Link className="button button-primary" to={`/sign-in?next=${next}`}>
+            Sign in
+          </Link>
         </div>
       </>
     );
@@ -102,10 +109,13 @@ export function Checkout() {
   if (state.kind === "error" && !state.event) {
     return (
       <>
-        <h1>Checkout</h1>
-        <div className="error" role="alert">
-          <p>Could not load checkout ({state.code}).</p>
-          <button type="button" onClick={state.retry}>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Reservation</p>
+          <h1>Could not load checkout</h1>
+        </div>
+        <div className="state-card error" role="alert">
+          <p>Reference: {state.code}</p>
+          <button className="button button-secondary" type="button" onClick={state.retry}>
             Retry
           </button>
         </div>
@@ -135,8 +145,6 @@ export function Checkout() {
           paymentCode,
         }),
       });
-      // Success lands on the durable detail page with a one-time banner
-      // (BKG-004, UI-DESIGN §3.5); BookingDetail strips ?fresh=1 on mount.
       navigate(`/bookings/${encodeURIComponent(res.booking.reference)}?fresh=1`);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : "UNEXPECTED_ERROR";
@@ -147,7 +155,6 @@ export function Checkout() {
         code === "SESSION_NOT_BOOKABLE" ||
         code === "IDEMPOTENCY_CONFLICT"
       ) {
-        // Refresh availability so the panel shows current remaining capacity.
         try {
           const res = await api<{ data: Detail }>(`/api/events/${encodeURIComponent(event.slug)}`);
           setState({ kind: "error", code, event: res.data, retry: () => setState({ kind: "form", event: res.data }) });
@@ -155,7 +162,6 @@ export function Checkout() {
           setState({ kind: "error", code, event, retry: () => setState({ kind: "form", event }) });
         }
       } else {
-        // Decline and validation keep the selection for a new attempt.
         setState({ kind: "error", code, event, retry: () => setState({ kind: "form", event }) });
       }
     } finally {
@@ -166,101 +172,132 @@ export function Checkout() {
   const errState = state.kind === "error" ? state : null;
   return (
     <>
-      <h1>Checkout</h1>
-      <p className="muted">{event.name}</p>
-      {errState && (
-        <div className="error" role="alert" tabIndex={-1} ref={(el) => el?.focus()}>
-          <p>
-            {errState.code === "PAYMENT_DECLINED" &&
-              "Payment declined (PAYMENT_DECLINED). Your selection is preserved — try again with a new attempt."}
-            {errState.code === "CAPACITY_INSUFFICIENT" &&
-              "Not enough places remain (CAPACITY_INSUFFICIENT). Availability below is refreshed."}
-            {errState.code === "IDEMPOTENCY_CONFLICT" &&
-              "This attempt was already used with different input (IDEMPOTENCY_CONFLICT). Start a new attempt."}
-            {!["PAYMENT_DECLINED", "CAPACITY_INSUFFICIENT", "IDEMPOTENCY_CONFLICT"].includes(errState.code) &&
-              `Could not complete checkout (${errState.code}).`}
-          </p>
-          <button type="button" onClick={errState.retry}>
-            {errState.code === "PAYMENT_DECLINED" ? "Try again" : "Back to selection"}
-          </button>
-        </div>
-      )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void submit();
-        }}
-      >
-        <div className="field">
-          <label htmlFor="checkout-session">Session</label>
-          <select
-            id="checkout-session"
-            value={activeSession?.id ?? ""}
-            onChange={(e) => {
-              setSessionId(e.target.value);
-              setTicketId("");
+      <div className="page-heading compact-heading">
+        <p className="eyebrow">Reservation</p>
+        <h1>Checkout</h1>
+        <p className="lede">Review your place before completing the simulated payment.</p>
+      </div>
+      <div className="checkout-layout">
+        <section className="surface checkout-form-card" aria-labelledby="checkout-form-heading">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Your selection</p>
+              <h2 id="checkout-form-heading">{event.name}</h2>
+            </div>
+            <span className="muted">Signed in as {attendee?.displayName}</span>
+          </div>
+          {errState && (
+            <div className="error form-error" role="alert" tabIndex={-1} ref={(el) => el?.focus()}>
+              <p>
+                {errState.code === "PAYMENT_DECLINED" &&
+                  "Payment declined (PAYMENT_DECLINED). Your selection is preserved — try again with a new attempt."}
+                {errState.code === "CAPACITY_INSUFFICIENT" &&
+                  "Not enough places remain (CAPACITY_INSUFFICIENT). Availability below is refreshed."}
+                {errState.code === "IDEMPOTENCY_CONFLICT" &&
+                  "This attempt was already used with different input (IDEMPOTENCY_CONFLICT). Start a new attempt."}
+                {!['PAYMENT_DECLINED', 'CAPACITY_INSUFFICIENT', 'IDEMPOTENCY_CONFLICT'].includes(errState.code) &&
+                  `Could not complete checkout (${errState.code}).`}
+              </p>
+              <button className="button button-secondary button-small" type="button" onClick={errState.retry}>
+                {errState.code === "PAYMENT_DECLINED" ? "Try again" : "Back to selection"}
+              </button>
+            </div>
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
             }}
           >
-            {event.sessions.map((s) => (
-              <option key={s.id} value={s.id} disabled={!s.bookable}>
-                {formatWibRange(s.startAt, s.endAt)} · {s.remainingCapacity} left
-                {s.bookable ? "" : ` (${s.reason})`}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="checkout-ticket">Ticket</label>
-          <select
-            id="checkout-ticket"
-            value={activeTicket?.id ?? ""}
-            onChange={(e) => setTicketId(e.target.value)}
-          >
-            {sessionTickets.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name} — {formatIdr(t.priceIdr)}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="checkout-quantity">Quantity (1–5)</label>
-          <select
-            id="checkout-quantity"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-          >
-            {[1, 2, 3, 4, 5].map((q) => (
-              <option key={q} value={q}>
-                {q}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p aria-live="polite" className="price">
-          Total {formatIdr(total)}
-        </p>
-        <div className="field">
-          <label htmlFor="checkout-code">Simulation code</label>
-          <input
-            id="checkout-code"
-            name="paymentCode"
-            type="text"
-            autoComplete="off"
-            placeholder="SIMULATE-SUCCESS or SIMULATE-DECLINE"
-            aria-describedby="checkout-code-help"
-            value={paymentCode}
-            onChange={(e) => setPaymentCode(e.target.value)}
-          />
-          <p id="checkout-code-help" className="muted">
-            Demo simulation only — no real payment. Server prices rule; client totals are ignored.
-          </p>
-        </div>
-        <button type="submit" disabled={submitting || !activeSession?.bookable}>
-          {submitting ? "Processing…" : `Pay ${formatIdr(total)}`}
-        </button>
-      </form>
-      <p className="muted">Signed in as {attendee?.displayName}.</p>
+            <div className="field">
+              <label htmlFor="checkout-session">Session</label>
+              <select
+                id="checkout-session"
+                value={activeSession?.id ?? ""}
+                onChange={(e) => {
+                  setSessionId(e.target.value);
+                  setTicketId("");
+                }}
+              >
+                {event.sessions.map((session) => (
+                  <option key={session.id} value={session.id} disabled={!session.bookable}>
+                    {formatWibRange(session.startAt, session.endAt)} · {session.remainingCapacity} left
+                    {session.bookable ? "" : ` (${session.reason})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="checkout-ticket">Ticket</label>
+              <select
+                id="checkout-ticket"
+                value={activeTicket?.id ?? ""}
+                onChange={(e) => setTicketId(e.target.value)}
+              >
+                {sessionTickets.map((ticket) => (
+                  <option key={ticket.id} value={ticket.id}>
+                    {ticket.name} — {formatIdr(ticket.priceIdr)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="checkout-quantity">Quantity (1–5)</label>
+              <select
+                id="checkout-quantity"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="checkout-code">Simulation code</label>
+              <input
+                id="checkout-code"
+                name="paymentCode"
+                type="text"
+                autoComplete="off"
+                placeholder="SIMULATE-SUCCESS or SIMULATE-DECLINE"
+                aria-describedby="checkout-code-help"
+                value={paymentCode}
+                onChange={(e) => setPaymentCode(e.target.value)}
+              />
+              <p id="checkout-code-help" className="form-note">
+                Demo simulation only — no real payment. Server prices rule; client totals are ignored.
+              </p>
+            </div>
+            <button className="button button-primary button-wide checkout-submit" type="submit" disabled={submitting || !activeSession?.bookable}>
+              {submitting ? "Processing…" : `Pay ${formatIdr(total)}`}
+            </button>
+          </form>
+        </section>
+        <aside className="surface order-summary" aria-label="Order summary">
+          <p className="eyebrow">Order summary</p>
+          <h2>{event.name}</h2>
+          <dl className="summary-list">
+            <div>
+              <dt>Session</dt>
+              <dd>{activeSession ? formatWibRange(activeSession.startAt, activeSession.endAt) : "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Ticket</dt>
+              <dd>{activeTicket?.name ?? "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Quantity</dt>
+              <dd>{quantity}</dd>
+            </div>
+          </dl>
+          <div className="summary-total">
+            <strong aria-live="polite" className="price">Total {formatIdr(total)}</strong>
+          </div>
+        </aside>
+      </div>
     </>
   );
 }

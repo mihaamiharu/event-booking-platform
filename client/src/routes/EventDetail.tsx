@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { navigate } from "../router.tsx";
 import { ApiError, api } from "../lib/api.ts";
-import { formatIdr, formatWibRange } from "../lib/format.ts";
+import { formatIdr, formatWibDateRange, formatWibRange } from "../lib/format.ts";
+import { StatusBadge } from "../components/StatusBadge.tsx";
 
 interface EventSession {
   id: string;
@@ -20,7 +21,7 @@ interface TicketType {
   eventSessionId: string;
 }
 
-interface EventDetail {
+interface EventDetailData {
   slug: string;
   name: string;
   description: string;
@@ -32,7 +33,7 @@ interface EventDetail {
 
 type State =
   | { kind: "loading" }
-  | { kind: "ready"; event: EventDetail }
+  | { kind: "ready"; event: EventDetailData }
   | { kind: "not-found" }
   | { kind: "error"; code: string; retry: () => void };
 
@@ -44,7 +45,7 @@ export function EventDetail({ slug }: { slug: string }) {
     const load = async () => {
       setState({ kind: "loading" });
       try {
-        const res = await api<{ data: EventDetail }>(`/api/events/${encodeURIComponent(slug)}`);
+        const res = await api<{ data: EventDetailData }>(`/api/events/${encodeURIComponent(slug)}`);
         if (!cancelled) setState({ kind: "ready", event: res.data });
       } catch (e) {
         if (cancelled) return;
@@ -64,19 +65,27 @@ export function EventDetail({ slug }: { slug: string }) {
   if (state.kind === "loading") {
     return (
       <>
-        <h1>Event</h1>
-        <div className="skeleton" aria-busy="true">
-          <div aria-hidden="true">Loading event…</div>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Event details</p>
+          <h1>Loading event</h1>
         </div>
+        <div className="skeleton-card skeleton-detail" aria-busy="true" aria-label="Loading event" />
       </>
     );
   }
   if (state.kind === "not-found") {
     return (
       <>
-        <h1>Event not found</h1>
-        <div className="empty">
-          <p>This event is unavailable. It may be a draft, cancelled, or past event.</p>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Unavailable</p>
+          <h1>Event not found</h1>
+          <p className="lede">This event may be a draft, cancelled, or already past.</p>
+        </div>
+        <div className="state-card empty">
+          <p>This event is not available for public booking.</p>
+          <button className="button button-secondary" type="button" onClick={() => navigate("/events")}>
+            Back to events
+          </button>
         </div>
       </>
     );
@@ -84,10 +93,13 @@ export function EventDetail({ slug }: { slug: string }) {
   if (state.kind === "error") {
     return (
       <>
-        <h1>Event</h1>
-        <div className="error" role="alert">
-          <p>Could not load this event ({state.code}).</p>
-          <button type="button" onClick={state.retry}>
+        <div className="page-heading compact-heading">
+          <p className="eyebrow">Event details</p>
+          <h1>Could not load event</h1>
+        </div>
+        <div className="state-card error" role="alert">
+          <p>Reference: {state.code}</p>
+          <button className="button button-secondary" type="button" onClick={state.retry}>
             Retry
           </button>
         </div>
@@ -95,78 +107,137 @@ export function EventDetail({ slug }: { slug: string }) {
     );
   }
 
-  const { event } = state;
-  // Keyed by slug so selection resets when navigating between events.
-  return <SelectableDetail key={event.slug} event={event} />;
+  return <SelectableDetail key={state.event.slug} event={state.event} />;
 }
 
-function SelectableDetail({ event }: { event: EventDetail }) {
+function SelectableDetail({ event }: { event: EventDetailData }) {
   const bookableSessions = event.sessions.filter((s) => s.bookable);
-  const [sessionId, setSessionId] = useState<string>(bookableSessions[0]?.id ?? "");
-  const activeSession = event.sessions.find((s) => s.id === sessionId) ?? bookableSessions[0];
+  const firstSession = bookableSessions[0] ?? event.sessions[0];
+  const [sessionId, setSessionId] = useState<string>(firstSession?.id ?? "");
+  const activeSession = event.sessions.find((s) => s.id === sessionId) ?? firstSession;
   const sessionTickets = event.ticketTypes.filter((t) => t.eventSessionId === activeSession?.id);
   const [ticketId, setTicketId] = useState<string>("");
   const activeTicket = sessionTickets.find((t) => t.id === ticketId) ?? sessionTickets[0];
+  const soldOut = !activeSession?.bookable;
 
   return (
     <>
-      <h1>{event.name}</h1>
-      <p className="muted">
-        {event.venue.name} · {event.venue.city}
-      </p>
-      <p>{event.description}</p>
-      <h2 id="schedule-heading">Schedule (WIB)</h2>
-      <div role="radiogroup" aria-labelledby="schedule-heading">
-        {event.sessions.map((s) => (
-          <label key={s.id} className="radio">
-            <input
-              type="radio"
-              name="session"
-              value={s.id}
-              checked={activeSession?.id === s.id}
-              disabled={!s.bookable}
-              onChange={() => {
-                setSessionId(s.id);
-                setTicketId("");
-              }}
-            />
-            {formatWibRange(s.startAt, s.endAt)} · {s.remainingCapacity} left ·{" "}
-            {s.bookable ? <span className="badge">Bookable</span> : <span className="badge">{s.reason}</span>}
-          </label>
-        ))}
+      <section className="page-heading detail-heading" aria-labelledby="event-heading">
+        <div>
+          <p className="eyebrow">Event details</p>
+          <h1 id="event-heading">{event.name}</h1>
+          <p className="lede">{event.description}</p>
+        </div>
+        <div className="detail-heading-meta">
+          <span>{event.venue.name}</span>
+          <span>{event.venue.city}</span>
+          {activeSession && <span>{formatWibDateRange(activeSession.startAt, activeSession.endAt)}</span>}
+        </div>
+      </section>
+
+      <div className="detail-layout">
+        <div className="detail-content">
+          <section className="surface detail-section" aria-labelledby="schedule-heading">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Choose a time</p>
+                <h2 id="schedule-heading">Schedule (WIB)</h2>
+              </div>
+              <span className="muted">All times in WIB</span>
+            </div>
+            <div className="radio-list" role="radiogroup" aria-labelledby="schedule-heading">
+              {event.sessions.map((session) => (
+                <label key={session.id} className={`choice-card ${!session.bookable ? "choice-card-disabled" : ""}`}>
+                  <input
+                    type="radio"
+                    name="session"
+                    value={session.id}
+                    checked={activeSession?.id === session.id}
+                    disabled={!session.bookable}
+                    onChange={() => {
+                      setSessionId(session.id);
+                      setTicketId("");
+                    }}
+                  />
+                  <span className="choice-copy">
+                    <strong>{formatWibRange(session.startAt, session.endAt)}</strong>
+                    <span>{session.remainingCapacity} places remaining</span>
+                  </span>
+                  <StatusBadge tone={session.bookable ? "bookable" : "unavailable"}>
+                    {session.bookable ? "Bookable" : session.reason ?? "Unavailable"}
+                  </StatusBadge>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section className="surface detail-section" aria-labelledby="tickets-heading">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Pick your place</p>
+                <h2 id="tickets-heading">Tickets</h2>
+              </div>
+              <span className="muted">Transparent IDR pricing</span>
+            </div>
+            <div className="radio-list" role="radiogroup" aria-labelledby="tickets-heading">
+              {sessionTickets.map((ticket) => (
+                <label key={ticket.id} className={`choice-card ${soldOut ? "choice-card-disabled" : ""}`}>
+                  <input
+                    type="radio"
+                    name="ticket"
+                    value={ticket.id}
+                    checked={(activeTicket?.id ?? sessionTickets[0]?.id) === ticket.id}
+                    disabled={soldOut}
+                    onChange={() => setTicketId(ticket.id)}
+                  />
+                  <span className="choice-copy">
+                    <strong>{ticket.name}</strong>
+                    <span>One ticket for this session</span>
+                  </span>
+                  <span className="price">{formatIdr(ticket.priceIdr)}</span>
+                </label>
+              ))}
+              {sessionTickets.length === 0 && <p className="muted">No ticket types are available for this session.</p>}
+            </div>
+          </section>
+        </div>
+
+        <aside className="surface booking-summary" aria-label="Booking summary">
+          <p className="eyebrow">Ready when you are</p>
+          <h2>{soldOut ? "This session is full" : "Reserve your place"}</h2>
+          <p className="muted">
+            {soldOut
+              ? "You can review the event details, but this session cannot accept more bookings."
+              : "Choose a ticket and continue to the secure demo checkout."}
+          </p>
+          <dl className="summary-list">
+            <div>
+              <dt>Session</dt>
+              <dd>{activeSession ? formatWibRange(activeSession.startAt, activeSession.endAt) : "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Ticket</dt>
+              <dd>{activeTicket ? `${activeTicket.name} · ${formatIdr(activeTicket.priceIdr)}` : "Unavailable"}</dd>
+            </div>
+          </dl>
+          <button
+            className="button button-primary button-wide"
+            type="button"
+            disabled={!activeSession?.bookable || !activeTicket}
+            onClick={() => {
+              const params = new URLSearchParams({
+                event: event.slug,
+                session: activeSession!.id,
+                ticket: activeTicket!.id,
+              });
+              navigate(`/checkout?${params.toString()}`);
+            }}
+          >
+            Continue to checkout
+          </button>
+          <p className="fine-print">No card details are requested. Payment is simulated for this demo.</p>
+        </aside>
       </div>
-      <h2 id="tickets-heading">Tickets</h2>
-      <div role="radiogroup" aria-labelledby="tickets-heading">
-        {sessionTickets.map((t) => (
-          <label key={t.id} className="radio">
-            <input
-              type="radio"
-              name="ticket"
-              value={t.id}
-              checked={(activeTicket?.id ?? sessionTickets[0]?.id) === t.id}
-              onChange={() => setTicketId(t.id)}
-            />
-            {t.name} — <span className="price">{formatIdr(t.priceIdr)}</span>
-          </label>
-        ))}
-      </div>
-      <p>
-        <button
-          type="button"
-          disabled={!activeSession?.bookable || !activeTicket}
-          onClick={() => {
-            const params = new URLSearchParams({
-              event: event.slug,
-              session: activeSession!.id,
-              ticket: activeTicket!.id,
-            });
-            navigate(`/checkout?${params.toString()}`);
-          }}
-        >
-          Continue
-        </button>
-      </p>
     </>
   );
 }
-

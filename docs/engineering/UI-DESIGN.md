@@ -1,7 +1,7 @@
 # R1 UI Design and Responsive Wireframes
 
 **Status:** Ready for review
-**Version:** 0.1
+**Version:** 0.2
 **Scope:** Issue #10 — user experience before application implementation
 **Sources:** INFORMATION-ARCHITECTURE, USER-FLOWS (UF-001…006), PERSONAS (Alya), ERROR-CATALOG, API-CONTRACT, NFR-002/003/009
 **Non-goals:** Framework/router choice (TDD §11), visual brand (PD-001 deferred), copy finalization beyond contract examples.
@@ -29,16 +29,23 @@
 - Demo controls live in a bordered `<section aria-label="Demo controls">` pinned after the footer content — never inside business nav (acceptance criterion).
 - API states per route: loading skeleton → content | empty | error with retry. Refreshing booking detail never resubmits checkout (GET only).
 
+### 2.1 Implemented product treatment
+
+The R1 implementation uses a neutral canvas, dark ink, a blue action accent, and semantic status colors as a temporary product system while public branding remains deferred. The shell presents the working product name, an attendee-booking descriptor, current navigation state, and a separate demo-controls footer link. Route content uses raised surfaces, event metadata blocks, explicit status badges, and consistent primary/secondary actions. This is a product-quality treatment of the existing R1 contract, not a final brand decision.
+
 ## 3. Route wireframes (mobile 360px first; desktop §5)
 
 ### 3.1 `/events` catalog (EVT-001, UF-003)
 
 ```text
 ┌──────────────────┐
-│ h1 Events        │
+│ h1 Find your     │
+│ next event       │
+│ Explore upcoming │
+│ sessions…        │
 │ ┌──────────────┐ │
-│ │ Workshop     │ │  article, h2 name, time, venue,
-│ │ Sat 18 Sep · │ │  starting price, status badge
+│ │ Workshop     │ │  article, h2 name, date, venue,
+│ │ Wed 23 Sep   │ │  starting price, status badge
 │ │ Merdeka Hall │ │
 │ │ From IDR     │ │
 │ │ 150.000 ● Av │ │
@@ -65,11 +72,12 @@ States: loading (2 skeleton cards, `aria-busy`); empty ("No published events rig
 │ ○ General — IDR  │
 │   150.000        │
 │ ○ Premium — …    │
-│ [Continue →]     │
+│ summary rail      │
+│ [Continue →]      │
 └──────────────────┘
 ```
 
-Session/ticket options are real `<input type="radio">` (keyboard + screen-reader free); unavailable options `disabled` with visible reason. Missing event → `EVENT_NOT_FOUND` not-found state (same for draft/cancelled).
+Session/ticket options are real `<input type="radio">` (keyboard + screen-reader free); unavailable sessions and ticket types remain visible, disabled, and carry a visible reason or sold-out status. The detail page uses an event summary rail for the selected session/ticket and the checkout action. Missing event → `EVENT_NOT_FOUND` not-found state (same for draft/cancelled).
 
 ### 3.3 `/sign-in` (ACC-001, UF-002)
 
@@ -109,11 +117,11 @@ Definition list: reference (copy button), event, session WIB range, ticket, quan
 
 ### 3.6 `/bookings` list (BKG-005, UF-006)
 
-Newest-first cards: reference, event name, session start (WIB), quantity, total IDR, status; empty state ("No bookings yet." + browse link); foreign/missing → `BOOKING_NOT_FOUND`.
+Newest-first cards: reference, event name, session date (WIB), quantity, total IDR, status; empty state ("No bookings yet." + browse link); foreign/missing → `BOOKING_NOT_FOUND`. Booking detail has a confirmation panel on first arrival and a durable detail surface on later visits.
 
 ### 3.7 `/demo` workspace controls (WSP-002…004, UF-001)
 
-Status card (seed version, provisioned date, expiry date, days remaining), isolation explainer, expiry policy, reset flow (explicit confirm checkbox + destructive-styled button), rate-limit (`WORKSPACE_RATE_LIMITED` + retry time), reset-failure (`WORKSPACE_RESET_FAILED`, never imply success), expired-workspace (`WORKSPACE_EXPIRED` + "Start a new workspace" action). Never shows another workspace identifier.
+Status card (seed version, provisioned date, expiry date, days remaining), isolation explainer, expiry policy, reset flow (explicit confirm checkbox + destructive-styled button), rate-limit (`WORKSPACE_RATE_LIMITED` + retry time), reset-failure (`WORKSPACE_RESET_FAILED`, never imply success), expired-workspace (`WORKSPACE_EXPIRED` + "Start a new workspace" action). Never shows another workspace identifier. The status and reset surfaces share the same product card treatment as the attendee journey.
 
 ## 4. Required-state matrix
 

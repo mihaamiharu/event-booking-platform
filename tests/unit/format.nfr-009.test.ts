@@ -1,7 +1,7 @@
 // Regional presentation unit tests (NFR-009, UI-DESIGN §7).
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatIdr, formatWibRange } from "../../client/src/lib/format.ts";
+import { formatIdr, formatWibDateRange, formatWibRange } from "../../client/src/lib/format.ts";
 
 describe("nfr-009 regional presentation", () => {
   it("formats IDR with code prefix and dot grouping, no decimals", () => {
@@ -15,6 +15,13 @@ describe("nfr-009 regional presentation", () => {
     assert.equal(
       formatWibRange("2026-09-18T02:00:00.000Z", "2026-09-18T05:00:00.000Z"),
       "Fri, 18 Sep 2026 · 09:00–12:00 WIB",
+    );
+  });
+
+  it("renders catalog date ranges in WIB calendar dates", () => {
+    assert.equal(
+      formatWibDateRange("2026-09-18T02:00:00.000Z", "2026-09-19T05:00:00.000Z"),
+      "Fri, 18 Sep 2026 – Sat, 19 Sep 2026",
     );
   });
 });

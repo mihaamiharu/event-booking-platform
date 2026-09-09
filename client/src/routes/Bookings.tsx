@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "../router.tsx";
 import { ApiError, api, getAttendee } from "../lib/api.ts";
-import { formatIdr } from "../lib/format.ts";
+import { formatIdr, formatWibDate } from "../lib/format.ts";
+import { StatusBadge } from "../components/StatusBadge.tsx";
 
 // Booking list (BKG-005, UF-006; UI-DESIGN §3.6). Newest first; explicit empty
 // state; sign-in prompt when anonymous.
@@ -54,47 +55,80 @@ export function Bookings() {
 
   return (
     <>
-      <h1>My bookings</h1>
+      <div className="page-heading compact-heading">
+        <p className="eyebrow">Your attendee record</p>
+        <h1>My bookings</h1>
+        <p className="lede">Your confirmed places, ready whenever you need the details.</p>
+      </div>
       {state.kind === "loading" && (
-        <div className="skeleton" aria-busy="true">
-          <div aria-hidden="true">Loading bookings…</div>
+        <div className="skeleton-grid" aria-busy="true">
+          <div className="skeleton-card" aria-hidden="true" />
         </div>
       )}
       {state.kind === "signin" && (
-        <div className="empty">
-          <p>Sign in to view your bookings.</p>
-          <Link to="/sign-in?next=%2Fbookings">Sign in</Link>
+        <div className="state-card empty">
+          <p className="eyebrow">Attendee access</p>
+          <h2>Sign in to view your bookings.</h2>
+          <p>Your bookings are private to your attendee account and workspace.</p>
+          <Link className="button button-primary" to="/sign-in?next=%2Fbookings">
+            Sign in
+          </Link>
         </div>
       )}
       {state.kind === "empty" && (
-        <div className="empty">
-          <p>No bookings yet.</p>
-          <Link to="/events">Browse events</Link>
+        <div className="state-card empty">
+          <p className="eyebrow">No reservations yet</p>
+          <h2>No bookings yet.</h2>
+          <p>When you reserve a place, the confirmation will stay here.</p>
+          <Link className="button button-primary" to="/events">
+            Browse events
+          </Link>
         </div>
       )}
       {state.kind === "error" && (
-        <div className="error" role="alert">
-          <p>Could not load bookings ({state.code}).</p>
-          <button type="button" onClick={state.retry}>
+        <div className="state-card error" role="alert">
+          <p className="eyebrow">Could not load bookings</p>
+          <h2>Something interrupted your booking list.</h2>
+          <p>Reference: {state.code}</p>
+          <button className="button button-secondary" type="button" onClick={state.retry}>
             Retry
           </button>
         </div>
       )}
       {state.kind === "ready" && (
-        <ul className="cards">
-          {state.items.map((b) => (
-            <li key={b.reference}>
-              <article className="card" aria-labelledby={`booking-${b.reference}`}>
-                <h2 id={`booking-${b.reference}`}>{b.reference}</h2>
-                <p className="muted">{b.eventName}</p>
-                <p className="price">
-                  {b.quantity} × {formatIdr(b.totalIdr)} · <span className="badge">{b.bookingStatus}</span>
-                </p>
-                <Link to={`/bookings/${encodeURIComponent(b.reference)}`}>View booking</Link>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <section className="content-section" aria-labelledby="confirmed-bookings-heading">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Confirmed reservations</p>
+              <h2 id="confirmed-bookings-heading">Your places</h2>
+            </div>
+            <span className="muted">Newest first</span>
+          </div>
+          <ul className="cards booking-grid">
+            {state.items.map((booking) => (
+              <li key={booking.reference}>
+                <article className="card booking-card" aria-labelledby={`booking-${booking.reference}`}>
+                  <div className="card-topline">
+                    <span className="eyebrow">Booking reference</span>
+                    <StatusBadge tone={booking.bookingStatus === "CONFIRMED" ? "confirmed" : "neutral"}>
+                      {booking.bookingStatus}
+                    </StatusBadge>
+                  </div>
+                  <h2 id={`booking-${booking.reference}`}>{booking.reference}</h2>
+                  <p className="booking-event">{booking.eventName}</p>
+                  <p className="booking-session">Session · {formatWibDate(booking.sessionStartAt)}</p>
+                  <div className="booking-card-footer">
+                    <span>{booking.quantity} {booking.quantity === 1 ? "ticket" : "tickets"}</span>
+                    <strong className="price">{formatIdr(booking.totalIdr)}</strong>
+                  </div>
+                  <Link className="button button-secondary button-small" to={`/bookings/${encodeURIComponent(booking.reference)}`}>
+                    View booking
+                  </Link>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </>
   );

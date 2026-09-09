@@ -27,10 +27,22 @@ export function navigate(to: string): void {
   for (const notify of listeners) notify();
 }
 
-export function Link({ to, children }: { to: string; children: React.ReactNode }) {
+export function Link({
+  to,
+  children,
+  className,
+  ariaCurrent,
+}: {
+  to: string;
+  children: React.ReactNode;
+  className?: string;
+  ariaCurrent?: "page";
+}) {
   return (
     <a
       href={to}
+      className={className}
+      aria-current={ariaCurrent}
       onClick={(e) => {
         e.preventDefault();
         navigate(to);

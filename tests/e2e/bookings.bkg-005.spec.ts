@@ -19,12 +19,15 @@ test("bkg-005 bookings list → detail revisit without banner (UF-006)", async (
   const card = page.locator("article.card", { hasText: "BKG-SEED-MAYA-001" });
   await expect(card).toBeVisible();
   await expect(card.getByText("Jakarta Design Systems Workshop")).toBeVisible();
+  await expect(card.getByText(/Session ·/)).toBeVisible();
   await card.getByRole("link", { name: "View booking" }).click();
 
   // Durable revisit: detail heading, no confirmation banner.
   await expect(page).toHaveURL(/\/bookings\/BKG-SEED-MAYA-001/);
   await expect(page.getByRole("heading", { name: "Booking BKG-SEED-MAYA-001", level: 1 })).toBeVisible();
-  await expect(page.getByText("Jakarta Design Systems Workshop")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Booking details" }).getByText("Jakarta Design Systems Workshop").first(),
+  ).toBeVisible();
   await expect(page.getByText("IDR 300.000").first()).toBeVisible();
   await expect(page.getByRole("status")).toHaveCount(0);
 });
@@ -40,7 +43,7 @@ test("bkg-005 empty bookings state with browse action", async ({ page }) => {
 test("bkg-004 fresh confirmation banner shows once, then detail stays", async ({ page }) => {
   await signIn(page, "alex.attendee@example.test", "Attend123!");
   await page.goto("/events/jakarta-design-systems-workshop");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue to checkout" }).click();
   await expect(page).toHaveURL(/\/checkout\?event=/);
   await page.getByLabel("Quantity (1–5)").selectOption("1");
   await page.getByLabel("Simulation code").fill("SIMULATE-SUCCESS");
@@ -62,6 +65,13 @@ test("bkg-004 unknown booking shows not-found", async ({ page }) => {
   await signIn(page, "alex.attendee@example.test", "Attend123!");
   await page.goto("/bookings/BKG-NOPE");
   await expect(page.getByRole("heading", { name: "Booking not found", level: 1 })).toBeVisible();
+});
+
+test("bkg-004 anonymous booking detail preserves a safe sign-in destination", async ({ page }) => {
+  await page.goto("/bookings/BKG-SEED-MAYA-001");
+  await expect(page.getByRole("heading", { name: "Sign in to view this booking", level: 1 })).toBeVisible();
+  await page.getByRole("main").getByRole("link", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/sign-in\?next=%2Fbookings%2FBKG-SEED-MAYA-001/);
 });
 
 test("bkg-005 bookings viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {

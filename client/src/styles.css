@@ -776,6 +776,7 @@ h2 {
 
 .auth-intro {
   max-width: 650px;
+  min-width: 0;
   padding: var(--space-5) 0;
 }
 
@@ -805,10 +806,12 @@ h2 {
 }
 
 .auth-card {
+  min-width: 0;
   box-shadow: var(--shadow-md);
 }
 
 .notice {
+  overflow-wrap: anywhere;
   padding: var(--space-3) var(--space-4);
   color: var(--primary-dark);
   background: var(--primary-soft);

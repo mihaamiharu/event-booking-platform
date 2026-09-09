@@ -10,6 +10,9 @@ export interface WorkerEnv {
   SESSION_SECRET?: string;
   TURNSTILE_SECRET?: string;
   DEPLOYMENT_ENV?: string;
+  QA_OBSERVABILITY_ENABLED?: string;
+  QA_CLOUDFLARE_LOGS_URL?: string;
+  QA_GRAFANA_URL?: string;
   SCENARIO_PROFILE?: string;
   SCENARIO_PROFILES_ENABLED?: string;
 }

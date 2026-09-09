@@ -15,6 +15,7 @@ import { checkout } from "./routes/checkout.ts";
 import { events } from "./routes/events.ts";
 import { session } from "./routes/session.ts";
 import { workspaces } from "./routes/workspaces.ts";
+import { qaObservabilityConfig } from "./qa.ts";
 import {
   getCookie,
   isExpired,
@@ -89,9 +90,14 @@ app.get("/api/health", (c) => {
   });
 });
 
+// QA cockpit configuration is deliberately available without a workspace so
+// the page can explain its deployment gate before it asks the browser to
+// provision or sign in. It returns only allowlisted external URLs.
+app.get("/api/qa/config", (c) => c.json(qaObservabilityConfig(c.env)));
+
 app.use("/api/*", async (c, next) => {
   const path = c.req.path;
-  if (path === "/api/health" || path === "/api/workspaces/provision") {
+  if (path === "/api/health" || path === "/api/qa/config" || path === "/api/workspaces/provision") {
     return next();
   }
   const meta = newMeta();

@@ -1,9 +1,9 @@
-// Booking reads (BKG-004, BKG-005; API-CONTRACT §3.5, AUTH-SECURITY T-01).
+// Booking reads and lifecycle writes (BKG-004/005/006/007; API-CONTRACT §3.5).
 // Every query binds (workspace_id, user_id) from server-side context;
 // missing vs. foreign references return the identical BOOKING_NOT_FOUND.
 import { Hono } from "hono";
 import type { AppContext } from "../app.ts";
-import { all, first, newMeta } from "../db.ts";
+import { all, d1BatchDb, first, newMeta } from "../db.ts";
 import { err } from "../errors.ts";
 import { resolveSession } from "../session.ts";
 import { scenarioEnabled } from "../scenario.ts";
@@ -23,6 +23,11 @@ function parsePaging(url: URL): { page: number; perPage: number } | Response {
     });
   }
   return { page, perPage };
+}
+
+/** Server-authoritative cancellation boundary (BKG-006/007, BR-BKG-007). */
+export function canCancelBooking(status: string, sessionStartAt: string, nowIso: string): boolean {
+  return status === "CONFIRMED" && sessionStartAt > nowIso;
 }
 
 export const bookings = new Hono<AppContext>();
@@ -117,13 +122,16 @@ bookings.get("/:reference", async (c) => {
     total_idr: number;
     currency: string;
     created_at: string;
+    status: string;
+    cancelled_at: string | null;
   }>(
     meta,
     db,
     `SELECT b.reference, e.slug, e.name AS event_name, b.event_session_id,
             s.start_at AS session_start_at, s.end_at AS session_end_at,
             i.ticket_type_id, t.name AS ticket_name,
-            b.quantity, i.unit_price_idr, b.total_idr, b.currency, b.created_at
+            b.quantity, i.unit_price_idr, b.total_idr, b.currency, b.created_at,
+            b.status, b.cancelled_at
        FROM bookings b
        JOIN events e ON e.id = b.event_id
        JOIN event_sessions s ON s.id = b.event_session_id
@@ -152,8 +160,152 @@ bookings.get("/:reference", async (c) => {
       totalIdr: row.total_idr,
       currency: row.currency,
       paymentStatus: "SUCCEEDED",
-      bookingStatus: "CONFIRMED",
+      bookingStatus: row.status,
+      cancelledAt: row.cancelled_at,
       createdAt: row.created_at,
+    },
+    meta,
+  });
+});
+
+bookings.post("/:reference/cancel", async (c) => {
+  const meta = newMeta();
+  const db = c.env.DB;
+  const ws = c.get("workspace");
+  const nowIso = new Date().toISOString();
+  const reference = c.req.param("reference");
+
+  const contentType = c.req.header("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return err(400, "VALIDATION_FAILED", {
+      message: "Cancellation requests must use application/json.",
+      fields: { contentType: "JSON_REQUIRED" },
+      correlation: false,
+    });
+  }
+  try {
+    await c.req.json();
+  } catch {
+    return err(400, "VALIDATION_FAILED", {
+      message: "Cancellation request body must be valid JSON.",
+      fields: { body: "JSON_INVALID" },
+      correlation: false,
+    });
+  }
+
+  const session = await resolveSession(meta, db, c.req.raw, ws.id, Date.parse(nowIso));
+  if (!session) {
+    return err(401, "AUTH_REQUIRED", { message: "Sign in to cancel a booking." });
+  }
+
+  const row = await first<{
+    id: string;
+    event_session_id: string;
+    quantity: number;
+    status: string;
+    session_start_at: string;
+  }>(
+    meta,
+    db,
+    `SELECT b.id, b.event_session_id, b.quantity, b.status,
+            s.start_at AS session_start_at
+       FROM bookings b
+       JOIN event_sessions s ON s.id = b.event_session_id
+      WHERE b.workspace_id = ?1 AND b.user_id = ?2 AND b.reference = ?3`,
+    ws.id,
+    session.userId,
+    reference,
+  );
+  if (!row) {
+    return err(404, "BOOKING_NOT_FOUND", { message: "Booking not found." });
+  }
+  if (row.status === "CANCELLED") {
+    return err(409, "BOOKING_ALREADY_CANCELLED", { message: "This booking is already cancelled." });
+  }
+  if (!canCancelBooking(row.status, row.session_start_at, nowIso)) {
+    return err(409, "BOOKING_CANCELLATION_CLOSED", {
+      message: "This booking can no longer be cancelled.",
+    });
+  }
+
+  // The operation token makes the two-statement batch single-use. A duplicate
+  // request can never match the token created by a different cancellation,
+  // so it cannot release capacity a second time (BKG-006/007).
+  const cancellationId = crypto.randomUUID();
+  let results: { changes: number }[];
+  try {
+    results = await d1BatchDb(db, meta).batch([
+      {
+        sql: `UPDATE bookings
+                 SET status = 'CANCELLED', cancelled_at = ?1, cancellation_id = ?2
+               WHERE id = ?3 AND workspace_id = ?4 AND user_id = ?5
+                 AND status = 'CONFIRMED'
+                 AND EXISTS (
+                   SELECT 1 FROM event_sessions
+                    WHERE id = ?6 AND workspace_id = ?4 AND start_at > ?1
+                      AND confirmed_quantity >= ?7
+                 )`,
+        params: [nowIso, cancellationId, row.id, ws.id, session.userId, row.event_session_id, row.quantity],
+      },
+      {
+        sql: `UPDATE event_sessions
+                 SET confirmed_quantity = confirmed_quantity - ?1
+               WHERE id = ?2 AND workspace_id = ?3 AND confirmed_quantity >= ?1
+                 AND EXISTS (
+                   SELECT 1 FROM bookings
+                    WHERE id = ?4 AND workspace_id = ?3 AND user_id = ?5
+                      AND event_session_id = ?2 AND status = 'CANCELLED'
+                      AND cancellation_id = ?6
+                 )`,
+        params: [row.quantity, row.event_session_id, ws.id, row.id, session.userId, cancellationId],
+      },
+    ]);
+  } catch {
+    return err(503, "SERVICE_UNAVAILABLE", {
+      message: "Cancellation unsettled; refresh the booking and retry.",
+    });
+  }
+
+  if (results[0]?.changes !== 1) {
+    const latest = await first<{ status: string; session_start_at: string }>(
+      meta,
+      db,
+      `SELECT b.status, s.start_at AS session_start_at
+         FROM bookings b
+         JOIN event_sessions s ON s.id = b.event_session_id
+        WHERE b.workspace_id = ?1 AND b.user_id = ?2 AND b.reference = ?3`,
+      ws.id,
+      session.userId,
+      reference,
+    );
+    if (!latest) {
+      return err(404, "BOOKING_NOT_FOUND", { message: "Booking not found." });
+    }
+    if (latest.status === "CANCELLED") {
+      return err(409, "BOOKING_ALREADY_CANCELLED", { message: "This booking is already cancelled." });
+    }
+    if (!canCancelBooking(latest.status, latest.session_start_at, nowIso)) {
+      return err(409, "BOOKING_CANCELLATION_CLOSED", {
+        message: "This booking can no longer be cancelled.",
+      });
+    }
+    return err(409, "BOOKING_CANCELLATION_CONFLICT", {
+      message: "Booking state changed; refresh and retry.",
+    });
+  }
+  if (results[1]?.changes !== 1) {
+    return err(503, "SERVICE_UNAVAILABLE", {
+      message: "Cancellation state is unsettled; refresh the booking.",
+    });
+  }
+
+  await touchActivity(meta, db, ws.id, nowIso, !scenarioEnabled(c.env, "wsp-activity-frozen"));
+  return c.json({
+    data: {
+      reference,
+      bookingStatus: "CANCELLED",
+      cancelledAt: nowIso,
+      releasedQuantity: row.quantity,
     },
     meta,
   });

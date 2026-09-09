@@ -18,8 +18,8 @@ Each provision or reset stores one `seed_reference_at` instant called `T0`.
 
 | Seed key | Email | Password | Initial booking state |
 | --- | --- | --- | --- |
-| `attendee_alex` | `alex.attendee@example.test` | `Attend123!` | No confirmed bookings |
-| `attendee_maya` | `maya.attendee@example.test` | `Booked123!` | One confirmed booking for two General tickets |
+| `attendee_alex` | `alex.attendee@example.test` | `Attend123!` | No booking history |
+| `attendee_maya` | `maya.attendee@example.test` | `Booked123!` | One confirmed, cancellable booking for two General tickets |
 
 Credentials are intentionally public demo data and valid only inside the active learner workspace. Passwords must still be hashed at rest.
 
@@ -94,7 +94,7 @@ One non-interactive fixture booking owns all five tickets so database state and 
 
 | Seed key | Owner | Reference | State |
 | --- | --- | --- | --- |
-| `booking_maya_design` | `attendee_maya` | `BKG-SEED-MAYA-001` | Confirmed, paid, two General tickets |
+| `booking_maya_design` | `attendee_maya` | `BKG-SEED-MAYA-001` | Confirmed, paid, two General tickets; `cancelled_at` is null |
 | `booking_fixture_soldout` | Non-interactive fixture | `BKG-SEED-SOLDOUT-001` | Confirmed, paid, five General tickets |
 
 References are deterministic only for seeded records. User-created booking references must be unique but need not be predictable.
@@ -109,13 +109,24 @@ References are deterministic only for seeded records. User-created booking refer
 
 The simulator stores an outcome, not the submitted simulation code, unless a later accepted security review explicitly requires otherwise.
 
+## Lifecycle scenario states
+
+The canonical seed stays small and resettable: Maya's `BKG-SEED-MAYA-001` is the future-session cancellation fixture. Use an isolated provisioned workspace for each mutation scenario, then reset it before reuse.
+
+| State | Setup | Expected observation |
+| --- | --- | --- |
+| Cancellable | Fresh seed; sign in as Maya | `GET /api/bookings/BKG-SEED-MAYA-001` is `CONFIRMED`; available session has 18 places remaining; cancellation succeeds once and releases 2 places. |
+| Already cancelled | Cancel Maya's seeded booking once | Detail/list retain the row as `CANCELLED`; a second cancel returns `BOOKING_ALREADY_CANCELLED`; remaining capacity is unchanged by the second call. |
+| Cancellation closed | In a local-only isolated DB, set the booking's session `start_at` to an instant before `now` without changing booking ownership | Cancellation returns `BOOKING_CANCELLATION_CLOSED`; status and capacity remain unchanged. Reset restores the future-session seed. |
+| Foreign or missing | Use Alex's session for Maya's reference, or a made-up reference | Both return the same `BOOKING_NOT_FOUND` shape and do not reveal ownership. |
+
 ## Reset invariants
 
 After reset:
 
 - both interactive accounts can authenticate with their documented credentials;
-- Alex has no confirmed bookings;
-- Maya has exactly one documented confirmed booking;
+- Alex has no booking history;
+- Maya has exactly one documented confirmed booking with `cancelled_at` and `cancellation_id` unset;
 - the available session has 18 remaining places;
 - the sold-out session has zero remaining places;
 - draft, cancelled, and past fixtures remain excluded from the public catalog;

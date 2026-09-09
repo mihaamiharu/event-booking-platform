@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, api, errorReference } from "../lib/api.ts";
 import { Link } from "../router.tsx";
 import { formatIdr, formatWibRange } from "../lib/format.ts";
 import { StatusBadge } from "../components/StatusBadge.tsx";
 
-// Booking detail + immediate confirmation (BKG-004, UF-006; UI-DESIGN §3.5).
+// Booking detail + immediate confirmation (BKG-004/006/007, UF-006/007;
+// UI-DESIGN §3.5). Cancellation stays on the durable detail route so refresh
+// and back-button behavior exercise the server-owned lifecycle state.
 // The success banner shows only when arriving with ?fresh=1 (set by checkout);
 // the param is stripped on mount so revisits render the durable detail.
 interface BookingDetailData {
@@ -22,6 +24,7 @@ interface BookingDetailData {
   currency: string;
   paymentStatus: string;
   bookingStatus: string;
+  cancelledAt: string | null;
   createdAt: string;
 }
 
@@ -34,6 +37,11 @@ type State =
 
 export function BookingDetail({ reference }: { reference: string }) {
   const [state, setState] = useState<State>({ kind: "loading" });
+  const [reloadKey, setReloadKey] = useState(0);
+  const [cancelDialog, setCancelDialog] = useState<"closed" | "confirm" | "submitting">("closed");
+  const [cancelNotice, setCancelNotice] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +72,35 @@ export function BookingDetail({ reference }: { reference: string }) {
     return () => {
       cancelled = true;
     };
-  }, [reference]);
+  }, [reference, reloadKey]);
+
+  useEffect(() => {
+    if (cancelDialog === "confirm") cancelButtonRef.current?.focus();
+  }, [cancelDialog]);
+
+  const cancelBooking = async () => {
+    if (state.kind !== "ready" || cancelDialog !== "confirm") return;
+    setCancelDialog("submitting");
+    setCancelError(null);
+    try {
+      await api(`/api/bookings/${encodeURIComponent(reference)}/cancel`, {
+        method: "POST",
+        body: "{}",
+      });
+      setCancelDialog("closed");
+      setCancelNotice(true);
+      setReloadKey((key) => key + 1);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "AUTH_REQUIRED") {
+        setCancelDialog("closed");
+        setState({ kind: "signin" });
+        return;
+      }
+      setCancelDialog("closed");
+      setCancelError(errorReference(e));
+      setReloadKey((key) => key + 1);
+    }
+  };
 
   if (state.kind === "loading") {
     return (
@@ -104,7 +140,7 @@ export function BookingDetail({ reference }: { reference: string }) {
           <p className="lede">The booking does not exist or belongs to another attendee.</p>
         </div>
         <div className="state-card empty">
-          <p>Check the reference or browse your confirmed bookings.</p>
+          <p>Check the reference or browse your booking history.</p>
           <Link className="button button-secondary" to="/bookings">
             Back to my bookings
           </Link>
@@ -135,7 +171,11 @@ export function BookingDetail({ reference }: { reference: string }) {
       <div className="page-heading compact-heading">
         <p className="eyebrow">{state.fresh ? "Reservation complete" : "Booking record"}</p>
         <h1>{state.fresh ? "Booking confirmed" : `Booking ${booking.reference}`}</h1>
-        <p className="lede">Keep this reference handy when you arrive.</p>
+        <p className="lede">
+          {booking.bookingStatus === "CANCELLED"
+            ? "This booking was cancelled and its places were released."
+            : "Keep this reference handy when you arrive."}
+        </p>
       </div>
       {state.fresh && (
         <div className="confirmation-panel" role="status">
@@ -150,13 +190,78 @@ export function BookingDetail({ reference }: { reference: string }) {
           </Link>
         </div>
       )}
+      {cancelNotice && booking.bookingStatus === "CANCELLED" && (
+        <div className="confirmation-panel booking-action-message" role="status">
+          <div>
+            <p className="eyebrow">Cancellation recorded</p>
+            <p>
+              Booking <strong>{booking.reference}</strong> is cancelled. No further action is needed.
+            </p>
+          </div>
+          <Link className="button button-secondary button-small" to="/bookings">
+            View booking history
+          </Link>
+        </div>
+      )}
+      {cancelError && (
+        <div className="state-card error booking-action-message" role="alert">
+          <p className="eyebrow">Could not cancel booking</p>
+          <p>Booking state may have changed. Refresh the record before trying again.</p>
+          <p>Reference: {cancelError}</p>
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={() => {
+              setCancelError(null);
+              setReloadKey((key) => key + 1);
+            }}
+          >
+            Refresh booking
+          </button>
+        </div>
+      )}
+      {cancelDialog !== "closed" && (
+        <div
+          className="cancel-confirmation"
+          role="alertdialog"
+          aria-modal="false"
+          aria-labelledby="cancel-booking-heading"
+          aria-describedby="cancel-booking-description"
+        >
+          <p className="eyebrow">Before you continue</p>
+          <h2 id="cancel-booking-heading">Cancel this booking?</h2>
+          <p id="cancel-booking-description">
+            This releases {booking.quantity} {booking.quantity === 1 ? "place" : "places"} for other attendees. The
+            booking record will remain visible as cancelled.
+          </p>
+          <div className="button-row">
+            <button
+              className="button button-secondary"
+              type="button"
+              disabled={cancelDialog === "submitting"}
+              onClick={() => setCancelDialog("closed")}
+            >
+              Keep booking
+            </button>
+            <button
+              className="button button-danger"
+              type="button"
+              disabled={cancelDialog === "submitting"}
+              ref={cancelButtonRef}
+              onClick={() => void cancelBooking()}
+            >
+              {cancelDialog === "submitting" ? "Cancelling…" : "Confirm cancellation"}
+            </button>
+          </div>
+        </div>
+      )}
       <section className="surface booking-detail-card" aria-label="Booking details">
         <div className="booking-detail-header">
           <div>
             <p className="eyebrow">{booking.eventName}</p>
             <h2>{booking.ticketName}</h2>
           </div>
-          <StatusBadge tone={booking.bookingStatus === "CONFIRMED" ? "confirmed" : "neutral"}>
+          <StatusBadge tone={booking.bookingStatus === "CONFIRMED" ? "confirmed" : "cancelled"}>
             {booking.bookingStatus}
           </StatusBadge>
         </div>
@@ -204,6 +309,25 @@ export function BookingDetail({ reference }: { reference: string }) {
             <dd><StatusBadge tone={booking.paymentStatus === "PAID" ? "paid" : "neutral"}>{booking.paymentStatus}</StatusBadge></dd>
           </div>
         </dl>
+        {booking.bookingStatus === "CANCELLED" ? (
+          <div className="booking-actions">
+            <p className="muted">This booking is cancelled and cannot be cancelled again.</p>
+          </div>
+        ) : (
+          <div className="booking-actions">
+            <p className="muted">Need to change your plans? Cancellation is available until the session starts.</p>
+            <button
+              className="button button-danger"
+              type="button"
+              onClick={() => {
+                setCancelError(null);
+                setCancelDialog("confirm");
+              }}
+            >
+              Cancel booking
+            </button>
+          </div>
+        )}
       </section>
     </>
   );

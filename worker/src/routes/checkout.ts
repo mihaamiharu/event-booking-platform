@@ -236,7 +236,7 @@ checkout.post("/", async (c) => {
   const now = nowIso;
 
   // Decline path: record attempt + idempotency outcome only — no booking row,
-  // no capacity consumed (PAY-001, BR-BKG-006).
+  // no capacity consumed (PAY-001/002, BR-BKG-002).
   if (paymentCode === DECLINE_CODE) {
     try {
       await d1BatchDb(db, meta).batch([

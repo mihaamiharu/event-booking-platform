@@ -52,9 +52,10 @@ export function SignIn() {
           <strong id="demo-credentials-heading">Demo credentials</strong>
           <p>Use either seeded account to explore the attendee journey:</p>
           <ul>
-            <li><code>alex.attendee@example.test</code> / <code>Attend123!</code></li>
-            <li><code>maya.attendee@example.test</code> / <code>Booked123!</code></li>
+            <li><code>alex.attendee@example.test</code> · attendee_alex</li>
+            <li><code>maya.attendee@example.test</code> · attendee_maya</li>
           </ul>
+          <p className="form-note">Use the documented seeded password from the QA test-data guide.</p>
         </aside>
         {existing && (
           <p className="notice">

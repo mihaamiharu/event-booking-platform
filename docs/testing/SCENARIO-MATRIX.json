@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "scenarios": [
     { "id": "AUTO-ACC-001", "requirement": "ACC-001", "evidence": ["positive", "negative", "authorization", "ui-a11y"], "tests": ["tests/api/session.acc-001.test.ts", "tests/e2e/signin.acc-001.spec.ts"] },
     { "id": "AUTO-EVT-001", "requirement": "EVT-001", "evidence": ["positive", "negative", "boundary", "ui-a11y", "db"], "tests": ["tests/api/catalog.evt-001.test.ts", "tests/e2e/discovery.evt-001.spec.ts"] },
@@ -9,6 +9,8 @@
     { "id": "AUTO-BKG-003", "requirement": "BKG-003", "evidence": ["positive", "negative", "concurrency", "db", "ui-a11y"], "tests": ["tests/api/concurrency.bkg-003.test.ts", "tests/e2e/checkout.bkg-001.spec.ts"] },
     { "id": "AUTO-BKG-004", "requirement": "BKG-004", "evidence": ["positive", "negative", "authorization", "db", "ui-a11y"], "tests": ["tests/api/booking-detail.bkg-004.test.ts", "tests/e2e/bookings.bkg-005.spec.ts"] },
     { "id": "AUTO-BKG-005", "requirement": "BKG-005", "evidence": ["positive", "negative", "boundary", "db", "ui-a11y"], "tests": ["tests/api/bookings.bkg-005.test.ts", "tests/e2e/bookings.bkg-005.spec.ts"] },
+    { "id": "AUTO-BKG-006", "requirement": "BKG-006", "evidence": ["positive", "negative", "boundary", "authorization", "db", "ui-a11y"], "tests": ["tests/unit/booking-lifecycle.bkg-006-bkg-007.test.ts", "tests/api/booking-cancellation.bkg-006-bkg-007.test.ts", "tests/db/booking-cancellation.bkg-006.test.ts", "tests/e2e/booking-cancellation.bkg-006-bkg-007.spec.ts"] },
+    { "id": "AUTO-BKG-007", "requirement": "BKG-007", "evidence": ["positive", "negative", "boundary", "authorization", "db", "ui-a11y"], "tests": ["tests/api/booking-cancellation.bkg-006-bkg-007.test.ts", "tests/e2e/booking-cancellation.bkg-006-bkg-007.spec.ts"] },
     { "id": "AUTO-PAY-001", "requirement": "PAY-001", "evidence": ["positive", "negative", "db", "ui-a11y"], "tests": ["tests/api/checkout.bkg-003.test.ts", "tests/e2e/checkout.bkg-001.spec.ts"] },
     { "id": "AUTO-WSP-001", "requirement": "WSP-001", "evidence": ["negative", "authorization", "db", "operational"], "tests": ["tests/api/reset.wsp-002.test.ts", "tests/api/session.acc-001.test.ts"] },
     { "id": "AUTO-WSP-002", "requirement": "WSP-002", "evidence": ["positive", "negative", "authorization", "db", "ui-a11y"], "tests": ["tests/api/reset.wsp-002.test.ts", "tests/e2e/demo.wsp-002.spec.ts"] },
@@ -22,6 +24,7 @@
     { "id": "AUTO-NFR-006", "requirement": "NFR-006", "evidence": ["negative", "operational", "security"], "tests": ["tests/api/redaction.nfr-006.test.ts", "tests/unit/turnstile.nfr-001.test.ts", "tests/e2e/observability.nfr-004-nfr-005-nfr-006.spec.ts"] },
     { "id": "AUTO-NFR-007", "requirement": "NFR-007", "evidence": ["positive", "db", "boundary"], "tests": ["tests/db/reset.nfr-007.test.ts"] },
     { "id": "AUTO-NFR-008", "requirement": "NFR-008", "evidence": ["positive", "ui-a11y", "operational"], "tests": ["tests/e2e/skeleton.nfr-008.spec.ts"] },
-    { "id": "AUTO-NFR-009", "requirement": "NFR-009", "evidence": ["positive", "ui-a11y", "db"], "tests": ["tests/unit/format.nfr-009.test.ts", "tests/e2e/discovery.evt-001.spec.ts"] }
+    { "id": "AUTO-NFR-009", "requirement": "NFR-009", "evidence": ["positive", "ui-a11y", "db"], "tests": ["tests/unit/format.nfr-009.test.ts", "tests/e2e/discovery.evt-001.spec.ts"] },
+    { "id": "AUTO-NFR-010", "requirement": "NFR-010", "evidence": ["positive", "negative", "boundary", "authorization", "db", "ui-a11y"], "tests": ["tests/unit/booking-lifecycle.bkg-006-bkg-007.test.ts", "tests/api/booking-cancellation.bkg-006-bkg-007.test.ts", "tests/db/booking-cancellation.bkg-006.test.ts", "tests/e2e/booking-cancellation.bkg-006-bkg-007.spec.ts"] }
   ]
 }

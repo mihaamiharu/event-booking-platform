@@ -9,7 +9,7 @@ Release 1 intentionally excludes the following behavior:
 - Check-in and attendance workflows
 - Administrative dashboards
 - Event approval or moderation
-- Booking cancellation and refunds
+- Refunds and rescheduling
 - Recurring events
 - Assigned seating or visual seat maps
 - Multiple currencies

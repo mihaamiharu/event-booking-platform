@@ -9,10 +9,11 @@ import {
 } from "./local-runtime.mjs";
 
 ensureDevVars();
+const e2eEnv = { ...process.env, EBP_E2E: "1" };
 const build = spawnSync(process.execPath, [
   viteCli,
   "build",
-], { cwd: clientDir, stdio: "inherit", windowsHide: true });
+], { cwd: clientDir, stdio: "inherit", windowsHide: true, env: e2eEnv });
 if (build.status !== 0) process.exit(build.status ?? 1);
 
 runLocalWrangler(["d1", "migrations", "apply", "DB"], { stdio: "inherit" });
@@ -24,7 +25,7 @@ runLocalWrangler(
 const server = startVite(
   "preview",
   ["--host", "127.0.0.1", "--port", "8780"],
-  { stdio: "inherit" },
+  { stdio: "inherit", env: e2eEnv },
 );
 
 function stop() {

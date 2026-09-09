@@ -1,8 +1,8 @@
 # R1 Public API Contract
 
 **Status:** Ready for review
-**Version:** 0.1
-**Scope:** Issue #7 — stable HTTP operations for every R1 product workflow
+**Version:** 0.2
+**Scope:** Issues #7 and #66 — stable HTTP operations for every attendee product workflow
 **Sources:** PRD, ERROR-CATALOG, INFORMATION-ARCHITECTURE, TRACEABILITY, DATA-DESIGN, CLOUDFLARE-USAGE-MODEL
 **Base path:** `/api` (Worker route; all other paths serve static assets)
 
@@ -35,7 +35,7 @@
 ### 1.3 Context and authorization
 
 - Workspace context: signed `ebp_workspace` cookie set by provision, required on every `/api/*` operation except `POST /api/workspaces/provision` and `GET /api/health`. Missing/invalid → `WORKSPACE_REQUIRED` (401); expired → `WORKSPACE_EXPIRED` (410).
-- Attendee session: HTTP-only `ebp_session` cookie set by sign-in. Protected operations (§3.4, §3.5, `POST /api/workspaces/reset` optional per §3.1) without a valid session → `AUTH_REQUIRED` (401).
+- Attendee session: HTTP-only `ebp_session` cookie set by sign-in. Protected operations (§3.4, §3.5 including cancellation, `POST /api/workspaces/reset` optional per §3.1) without a valid session → `AUTH_REQUIRED` (401).
 - Ownership is enforced inside SQL (`workspace_id`, `user_id`); not-found and not-owned return the same `*_NOT_FOUND` code (non-enumerating).
 
 ### 1.4 Pagination
@@ -70,6 +70,8 @@ No test-only endpoints, bulk-delete routes, or seed-injection parameters exist i
 | `BKG-003` | `POST /api/checkout` (201 created / 200 replay) |
 | `BKG-004` | `GET /api/bookings/:reference` |
 | `BKG-005` | `GET /api/bookings` |
+| `BKG-006` | `POST /api/bookings/:reference/cancel` |
+| `BKG-007` | `GET /api/bookings`, `GET /api/bookings/:reference`, `POST /api/bookings/:reference/cancel` |
 | `PAY-001` | `POST /api/checkout` (`paymentCode` field) |
 | `WSP-001` | All operations (workspace scoping); `GET /api/workspaces/status` |
 | `WSP-002` | `POST /api/workspaces/reset` |
@@ -153,7 +155,20 @@ Only `PUBLISHED` events with a future session appear; `availabilityStatus` is `A
 
 **`GET /api/bookings?page=&perPage=`** — own workspace + attendee only, newest first. Item: `{reference, eventName, sessionStartAt, quantity, totalIdr, currency, bookingStatus}`. Empty → `"data": []`.
 
-**`GET /api/bookings/:reference`** — full booking shape (§3.4) plus event/session/ticket names. Foreign or missing reference → `BOOKING_NOT_FOUND` (404).
+**`GET /api/bookings/:reference`** — full booking shape (§3.4) plus event/session/ticket names. Foreign or missing reference → `BOOKING_NOT_FOUND` (404). The response includes the stored `bookingStatus` and nullable `cancelledAt`; cancelled records remain readable.
+
+**`POST /api/bookings/:reference/cancel`** — cancel an attendee-owned confirmed booking before its session starts (BKG-006/007). The request body is `{}` and must be JSON. Success returns 200:
+
+```json
+{ "data": {
+    "reference": "BKG-7F3QXA",
+    "bookingStatus": "CANCELLED",
+    "cancelledAt": "2026-09-04T10:02:00Z",
+    "releasedQuantity": 2
+  } }
+```
+
+The transition and shared session-capacity release execute as one logical write. `BOOKING_ALREADY_CANCELLED` (409) is returned for a repeat attempt without another release; `BOOKING_CANCELLATION_CLOSED` (409) is returned once the session has started or the record is otherwise non-confirmed; `BOOKING_CANCELLATION_CONFLICT` (409) asks the client to refresh after an unexpected concurrent state change. Missing and foreign references return `BOOKING_NOT_FOUND` (404), and no body ownership field is accepted.
 
 ### 3.6 Operational
 
@@ -187,7 +202,7 @@ Per the usage model §8, Worker-request, CPU, and D1 row/storage exhaustion all 
 
 Checkout success/decline/invalid-code, idempotent replay/conflict, empty catalog/bookings, foreign-booking 404, and expired-workspace 410 examples above are the contract fixtures issues #10 (UI) and #11 (test strategy) must reuse.
 
-## 6. Stable error codes (adopts the product error catalog plus four approved additions)
+## 6. Stable error codes (adopts the product error catalog plus lifecycle additions)
 
 All catalog codes are adopted unchanged with their HTTP categories. Approved additions (required by the usage model and rate-limit design; the error catalog is updated in this same change):
 
@@ -198,3 +213,6 @@ All catalog codes are adopted unchanged with their HTTP categories. Approved add
 | `STORAGE_FULL` | 503 | Database storage cap reached; reads unaffected |
 | `WORKSPACE_PROVISION_FAILED` | 503 | Provisioning could not complete; no partial workspace |
 | `TURNSTILE_REQUIRED` | 403 | Armed IP must complete a challenge before provision/reset writes |
+| `BOOKING_ALREADY_CANCELLED` | 409 | The attendee's booking has already been cancelled; capacity is unchanged |
+| `BOOKING_CANCELLATION_CLOSED` | 409 | The booking can no longer be cancelled because its session has started or its state is closed |
+| `BOOKING_CANCELLATION_CONFLICT` | 409 | Booking state changed while cancellation was being attempted; refresh and retry |

@@ -13,7 +13,7 @@
 | API contract | Deployed Worker + D1 (local first) | Every operation × success/validation/auth/not-found/conflict/decline/rate-limit; stable codes; `meta.rows_read/rows_written` budget assertions | Browser rendering |
 | Database state | D1 directly (local) | Booking/item/payment rows, price snapshots, capacity counters, ownership scoping, reset invariants, index usage (`EXPLAIN QUERY PLAN` on hot paths) | HTTP semantics |
 | UI component + a11y | Component harness + browser | UI-DESIGN §4 states, §6 annotations: keyboard paths, names/roles, focus moves, error association, contrast values | Business logic |
-| E2E journeys | Full stack (local, preview smoke) | UF-001…006 end to end on Playwright Chromium, Firefox, and WebKit at 360px and desktop viewports | Quota exhaustion, abuse soaks |
+| E2E journeys | Full stack (local, preview smoke) | UF-001…007 end to end on Playwright Chromium, Firefox, and WebKit at 360px and desktop viewports | Quota exhaustion, abuse soaks |
 | Concurrency spike | Local + preview | DATA-DESIGN §6: ≥20 parallel last-seat checkouts; idempotent replay/conflict suite | Production load |
 | Workspace lifecycle | API + D1 | Provision/reuse/rate-limit, reset isolation + invariants, expiry boundary via direct `last_active_at` manipulation (**local D1 only**), cleanup-batch drain | Real 7-day waits |
 | Security negative | API + logs | AUTH-SECURITY T-01…T-12 verbatim | Penetration testing beyond R1 scope |
@@ -33,6 +33,8 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 | `BKG-003` | fingerprint | 201/200-replay/409-conflict | atomic rows + counter | confirmation banner | UF-004 | concurrency spike, T-08/T-09 |
 | `BKG-004` | — | detail/404 parity | ownership scoping | detail list | UF-006 | T-01 |
 | `BKG-005` | — | list order/pagination/empty | newest-first query | list/empty | UF-006 | — |
+| `BKG-006` | — | cancel/auth/time boundary | atomic status + capacity release | confirmation and cancelled detail | UF-007 | lifecycle DB proof |
+| `BKG-007` | — | duplicate/foreign/stale parity | single-use release token | status and retry states | UF-007 | ownership + keyboard |
 | `PAY-001` | code validator | success/decline/invalid, no side effects | attempt rows, no booking on decline | decline panel | UF-004/005 | — |
 | `WSP-001` | — | cross-workspace 404 parity suite | scope-column audit of every table | — | — | T-02/T-04 |
 | `WSP-002` | — | reset auth/confirm/rate-limit/failure | invariants + isolation | demo controls states | UF-001 | — |
@@ -42,6 +44,7 @@ Tooling proposal (ratified in #12): Playwright for E2E (per NFR-008), a TS HTTP 
 | `NFR-002` | — | — | — | keyboard/focus/name/contrast per UI-DESIGN §6 | keyboard-only journey pass | — |
 | `NFR-003` | — | — | — | 360px + desktop viewport pass | same in E2E | no horizontal overflow assertion |
 | `NFR-004` | error mapper | code-stability suite (codes pinned, messages free) | — | — | — | — |
+| `NFR-010` | — | lifecycle error-code and transition suite | atomic release and reset invariants | dialog focus/status/retry | UF-007 | responsive cancellation |
 | `NFR-005` | — | — | — | — | — | ID-in-name lint + PR checklist (§5) |
 | `NFR-006` | — | — | no card columns; sim codes unpersisted | no card fields | — | T-10 log redaction grep |
 | `NFR-007` | — | — | reset-twice diff (logical equality modulo T0/hashes) | — | — | — |

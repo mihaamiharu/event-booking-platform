@@ -12,6 +12,8 @@ Use a fresh workspace for scenarios marked **reset**. Expected dates are relativ
 | MAN-BKG-003 | BKG-003 | UI/API/DB | P0 | Alex, fresh workspace | Success creates one confirmed booking; replay is idempotent; changed-key input conflicts; capacity changes once. |
 | MAN-BKG-004 | BKG-004 | UI/API/DB | P0 | Maya booking and foreign reference | Owner can view detail; another attendee/workspace receives the same safe not-found outcome. |
 | MAN-BKG-005 | BKG-005 | UI/API/DB | P0 | Alex empty, Maya populated | List is newest-first, paginated, owner-scoped, and links to detail; empty state is explicit. |
+| MAN-BKG-006 | BKG-006 | UI/API/DB/a11y | P0 | Maya seeded future booking | Accessible confirmation changes Maya's booking to `CANCELLED`, records the transition, and releases exactly two places. |
+| MAN-BKG-007 | BKG-007 | UI/API/DB | P0 | Cancelled, stale, duplicate, and foreign references | Cancelled history remains visible; repeat/late/foreign actions return stable outcomes without a second capacity release or ownership leak. |
 | MAN-PAY-001 | PAY-001 | UI/API/DB | P0 | Checkout selection | Success, decline, invalid code, retry, and no-card-data behavior match the contract. |
 | MAN-WSP-001 | WSP-001 | API/DB/security | P0 | Two workspaces and attendees | Workspace/user/body/path tampering cannot read or mutate another workspace. |
 | MAN-WSP-002 | WSP-002 | UI/API/DB | P0 | Mutated workspace | Confirmed reset restores seed accounts/content/capacity, kills sessions, and leaves other workspaces unchanged. |
@@ -26,6 +28,7 @@ Use a fresh workspace for scenarios marked **reset**. Expected dates are relativ
 | MAN-NFR-007 | NFR-007 | DB/reset | P0 | Reset twice | Same seed version/reset yields the same logical state modulo T0 and salted hashes. |
 | MAN-NFR-008 | NFR-008 | browser | P0 | Chromium, Firefox, WebKit | Core journey passes in every promised engine, or the documented release decision explicitly defers one. |
 | MAN-NFR-009 | NFR-009 | UI/API | P1 | Catalog, detail, booking | English copy, integer IDR formatting, and Asia/Jakarta/WIB display are consistent. |
+| MAN-NFR-010 | NFR-010 | UI/API/DB/a11y | P0 | Cancellation success, duplicate, stale, and 360px detail | Lifecycle write is atomic and bounded; confirmation, pending, success, error, focus, and responsive behavior are observable. |
 
 ## Exploratory charters
 

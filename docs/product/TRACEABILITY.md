@@ -16,6 +16,8 @@ Executable scenario IDs, evidence dimensions, and linked test files are maintain
 | `BKG-003` | `UF-004` | `BR-BKG-002` through `BR-BKG-004` | Checkout, confirmation | Success code and available capacity | E2E, API, idempotency, concurrency and database tests |
 | `BKG-004` | `UF-006` | `BR-BKG-005` | Booking detail | Maya seeded booking and foreign references | UI, API and authorization tests |
 | `BKG-005` | `UF-006` | `BR-BKG-005` | My bookings | Alex empty state and Maya populated state | UI, API, sorting and ownership tests |
+| `BKG-006` | `UF-007` | `BR-BKG-006`, `BR-BKG-007`, `BR-BKG-008` | Booking detail cancellation action | Maya confirmed booking, future session | API, DB atomicity, UI and E2E lifecycle tests |
+| `BKG-007` | `UF-007` | `BR-BKG-007`, `BR-BKG-008` | Booking list/detail status and recovery | Cancelled, duplicate, stale, foreign references | API parity, UI/a11y and E2E negative-path tests |
 | `PAY-001` | `UF-004`, `UF-005` | `BR-PAY-001` through `BR-PAY-003` | Checkout | Success, decline and invalid simulation input | UI, API and database-side-effect tests |
 | `WSP-001` | `UF-001` | `BR-ACC-002` | All dynamic interfaces | Two isolated workspaces | Negative API and database-scope tests |
 | `WSP-002` | `UF-001` | `BR-WSP-003` | Demo controls | Mutated then reset workspace | API, database and cross-workspace tests |
@@ -35,6 +37,7 @@ Executable scenario IDs, evidence dimensions, and linked test files are maintain
 | `NFR-007` | Seed-data reset invariants | Repeat provision/reset comparison |
 | `NFR-008` | Release definition | Current Chromium, Firefox and WebKit execution |
 | `NFR-009` | Product decisions and business rules | English copy, IDR formatting, and WIB display checks |
+| `NFR-010` | Booking lifecycle decision and cancellation contract | Atomic transition, deterministic edge fixtures, accessible recovery and responsive E2E |
 
 ## Traceability maintenance
 

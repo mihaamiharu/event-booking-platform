@@ -6,16 +6,16 @@
 
 ## Release claim
 
-An attendee can use a deterministic learner workspace to sign in, discover a published event, select available tickets, complete a deterministic simulated payment, and retrieve one durable confirmed booking without another workspace observing or changing that state.
+An attendee can use a deterministic learner workspace to sign in, discover a published event, select available tickets, complete a deterministic simulated payment, retrieve a durable booking, and cancel that booking before its session starts without another workspace observing or changing that state.
 
 ## Included requirements
 
 - `ACC-001`
 - `EVT-001` through `EVT-002`
-- `BKG-001` through `BKG-005`
+- `BKG-001` through `BKG-007`
 - `PAY-001`
 - `WSP-001` through `WSP-004`
-- `NFR-001` through `NFR-009`
+- `NFR-001` through `NFR-010`
 
 ## Primary user flows
 
@@ -25,6 +25,7 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 - `UF-004` — Complete a successful booking
 - `UF-005` — Receive a payment decline
 - `UF-006` — View a confirmed booking
+- `UF-007` — Cancel a booking before the session
 
 ## Release gates
 
@@ -48,7 +49,7 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 - Core flows pass at supported mobile and desktop viewport sizes.
 - Keyboard and accessible-name checks cover the primary journey.
 - API contract verification covers success, validation, authorization, not-found, conflict, and decline outcomes.
-- Database verification proves booking, price snapshot, payment result, ownership, and capacity state.
+- Database verification proves cancellation state, single-use capacity release, ownership parity, and lifecycle read-back.
 - A clean deployment can be seeded, exercised, reset, and exercised again.
 
 ## Known release risks
@@ -59,11 +60,12 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 - The public `workers.dev` name cannot be finalized before the Worker name is selected.
 - The three-browser matrix must remain executable in CI; see ADR-0010. A browser-engine failure is a release-quality failure, not silent scope reduction.
 
-## R1 verification evidence (S8, 2026-09-08)
+## R1 baseline verification evidence (S8, 2026-09-08)
 
-Product gate: PRD, business rules, error catalog (now incl. `TURNSTILE_REQUIRED`),
-seed data, and traceability reviewed across S0–S8; 22/22 R1 IDs covered by
-tests under `--strict-coverage`.
+Product gate: PRD, business rules, error catalog (now incl. `TURNSTILE_REQUIRED` and lifecycle codes),
+seed data, and traceability reviewed across S0–S8; the original R1 baseline
+evidence remains recorded, with 25/25 current requirement IDs covered by tests
+under `--strict-coverage` after the lifecycle extension.
 
 Engineering gate: static client + Worker deploy to disposable preview on the
 free plan (config accepted: assets, hourly cron, observability); D1
@@ -78,6 +80,15 @@ redaction + CSRF harnesses, Chromium/Firefox/WebKit E2E. Disposable preview run:
 migrate-clean → seed → exercise (catalog, sign-in, decline, booking) →
 reset → re-exercise (seeded-only state) → resources deleted; no secrets,
 database IDs, or preview URLs retained.
+
+## Issue #66 lifecycle extension verification (2026-09-10)
+
+Local implementation evidence: `npm run test:local` passed typecheck, strict
+requirement coverage (25/25), redaction, 30 unit tests, 15 DB tests, 66 API
+tests, and 64 browser tests across Chromium, Firefox, and WebKit (2 intentional
+skips). `npm run build --workspace=client` and `npm run test:traceability` also
+passed. This local verification did not create preview resources; preview
+migration/deployment remains a PR integration gate.
 
 ## Discovery evidence
 

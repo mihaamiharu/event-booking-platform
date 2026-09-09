@@ -87,9 +87,17 @@ The same attendee repeating checkout with the same idempotency key and equivalen
 
 An authenticated attendee may list or retrieve only bookings owned by their attendee identity and learner workspace.
 
-### BR-BKG-006 — R1 booking state
+### BR-BKG-006 — Booking lifecycle state
 
-R1 creates a booking only when it can immediately become `CONFIRMED`. Decline and validation outcomes do not create pending or failed booking records. Booking cancellation is not available.
+Checkout creates a booking only when it can immediately become `CONFIRMED`. A confirmed booking may later become `CANCELLED` before its session starts. Decline and validation outcomes do not create pending or failed booking records.
+
+### BR-BKG-007 — Cancellation ownership and time boundary
+
+Cancellation requires a valid attendee session and a booking owned by both that attendee and the active workspace. The server compares the session start to its current time; client clocks and request-body ownership fields have no authority. Missing and foreign references return the same `BOOKING_NOT_FOUND` outcome, and a session that has started returns `BOOKING_CANCELLATION_CLOSED`.
+
+### BR-BKG-008 — Single-use capacity release
+
+Cancellation changes booking state and decrements the shared session counter as one logical, atomic operation. The transition carries a unique cancellation operation token so a duplicate or concurrent request cannot decrement the counter twice. Cancelled booking, item, and payment rows remain readable for history.
 
 ## Payment simulation
 
@@ -148,4 +156,4 @@ R1 user-facing content is English only. Human-readable text is not used as a per
 - Localization and language selection.
 - Multi-currency, conversion, tax, and booking fees.
 - Venue-specific time zones and daylight-saving transitions.
-- Cancellation, refunds, temporary ticket holds, and waitlists.
+- Refunds, temporary ticket holds, waitlists, and rescheduling.

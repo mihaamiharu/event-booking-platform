@@ -2,7 +2,7 @@
 
 **Status:** Ready for review
 **Version:** 0.1
-**Scope:** Issue #6 — R1 ERD and data lifecycle for Cloudflare D1
+**Scope:** Issues #6 and #66 — R1 ERD and data lifecycle for Cloudflare D1
 **Sources:** PRD, BUSINESS-RULES, TEST-DATA (`r1-v1`), TDD, CLOUDFLARE-USAGE-MODEL
 **Budgets:** Every query pattern below must fit §3 of the usage model (≤ 8 D1 queries per endpoint, indexed `(workspace_id, …)` access, checkout in one batch).
 
@@ -45,9 +45,9 @@ workspaces 1───* users 1───* sessions
 | `events` | `id` TEXT PK; UNIQUE `(workspace_id, slug)` | `workspace_id`, `venue_id` FK | `status` DRAFT/PUBLISHED/CANCELLED; `sales_open_at`, `sales_close_at`; EVT-001/002, BR-EVT-001/004 |
 | `event_sessions` | `id` TEXT PK | `workspace_id`, `event_id` FK | `status` SCHEDULED/CANCELLED/COMPLETED; `start_at`, `end_at`; `capacity`; `confirmed_quantity` counter (default 0); BR-EVT-002/003/005 |
 | `ticket_types` | `id` TEXT PK | `workspace_id`, `event_id`, `event_session_id` FKs | `name`, `price_idr` INTEGER ≥ 0; capacity shared at session level, never per ticket type; BKG-001, BR-TKT-001/002 |
-| `bookings` | `id` TEXT PK; UNIQUE `(workspace_id, reference)` | `workspace_id`, `user_id`, `event_id`, `event_session_id` FKs | `reference` human-readable unique; `status` always `CONFIRMED` in R1; `quantity`, `total_idr`; `created_at`; BKG-003/004/005, BR-BKG-006 |
+| `bookings` | `id` TEXT PK; UNIQUE `(workspace_id, reference)` | `workspace_id`, `user_id`, `event_id`, `event_session_id` FKs | `reference` human-readable unique; `status` `CONFIRMED` or `CANCELLED`; `quantity`, `total_idr`; `created_at`; nullable `cancelled_at` and internal `cancellation_id`; BKG-003/004/005/006/007, BR-BKG-006/008 |
 | `booking_items` | `id` TEXT PK; UNIQUE `(booking_id)` (one ticket type per checkout) | `workspace_id`, `booking_id`, `ticket_type_id` FKs | `quantity` 1–5, `unit_price_idr` **snapshot** copied at checkout, `subtotal_idr`; BR-TKT-003 |
-| `payment_attempts` | `id` TEXT PK | `workspace_id`, `user_id` FKs; `booking_id` NULL FK (set on success only) | `outcome` SUCCEEDED/DECLINED; stores outcome, never the simulation code; decline rows are attempt records, not booking records (BR-BKG-006); PAY-001, BR-PAY-004 |
+| `payment_attempts` | `id` TEXT PK | `workspace_id`, `user_id` FKs; `booking_id` NULL FK (set on success only) | `outcome` SUCCEEDED/DECLINED; stores outcome, never the simulation code; decline rows are attempt records, not booking records (BR-BKG-002, BR-PAY-004); PAY-001, BR-PAY-004 |
 | `idempotency_keys` | PK `(workspace_id, user_id, key)` | Composite PK is the scope | `fingerprint` (SHA-256 of canonical booking input; hash only, raw sim code never stored — NFR-006), `booking_id` NULL, `outcome` NULL, `created_at`; BR-BKG-004 |
 
 ## 3. Constraints that enforce the invariants
@@ -62,6 +62,7 @@ workspaces 1───* users 1───* sessions
      AND confirmed_quantity + ?1 <= capacity;
   ```
   The Worker checks the update affected exactly 1 row; otherwise it aborts the batch and returns a stable conflict (sold out / stale input). No confirmed booking exists without its capacity increment (BR-BKG-002/003). The batch also inserts `bookings`, `booking_items`, `payment_attempts` (SUCCEEDED), and `idempotency_keys` together — partial confirmed state is impossible **iff** D1 batches are atomic (see §6 spike).
+- **Cancellation:** cancellation uses one D1 batch. The first statement changes an attendee-owned booking from `CONFIRMED` to `CANCELLED` only while the session is in the future and the counter can release the booking quantity. The second statement decrements the session counter only when it sees the unique `cancellation_id` written by that same batch. A repeat or concurrent request therefore matches neither the state transition nor the release and returns a stable lifecycle conflict; `cancelled_at` preserves read-back history (BR-BKG-007/008).
 - **Price authority:** `unit_price_idr`/`total_idr` are computed server-side from `ticket_types.price_idr × quantity`; client totals are ignored; later price changes cannot alter `booking_items` snapshots (BR-TKT-002/003).
 - **Time authority:** sales-window and future-session checks use server `now` against UTC instants; `sales_open_at <= now < sales_close_at AND now < start_at` (BR-TIM-002/003).
 - **No card data:** no column exists for card numbers, CVCs, or expiries; adding one later requires a new ADR plus migration review (R-006).
@@ -103,11 +104,11 @@ These are **not yet proven** — the R1 release gate forbids overbooking under s
 
 ## 7. Migrations and deterministic seed
 
-- Numbered forward-only SQL migrations via Wrangler D1 (`0001_init.sql`, …); schema changes never edit applied migrations. Seed data is **not** in migrations — it runs through the provision/reset path (§5.1) so local, preview, and production derive identical logical state from T0 + `Asia/Jakarta` offsets (NFR-007, R-003).
+- Numbered forward-only SQL migrations via Wrangler D1 (`0001_init.sql`, `0002_rate_limits.sql`, `0003_booking_cancellation.sql`, …); schema changes never edit applied migrations. Seed data is **not** in migrations — it runs through the provision/reset path (§5.1) so local, preview, and production derive identical logical state from T0 + `Asia/Jakarta` offsets (NFR-007, R-003).
 - Migration acceptance per environment: apply to clean local and preview databases, run reset-invariant checks (TEST-DATA reset invariants), then promote. Destructive migrations require a new ADR.
 - `seed_version` stored per workspace; a future `r1-v2` seed is a code + migration change, never an in-place edit of seed meaning.
 
 ## 8. Budget fit and handoff
 
-- Catalog (1–2 queries/≤ 30 reads), detail (2–3/≤ 50), checkout (≤ 8/one batch/≤ 30 reads/≤ 8 writes), list/detail reads, provision (≤ 10/≤ 45 writes), reset (≤ 12/≤ 60 writes), cleanup (≤ 20/≤ 500) — all inside usage-model §3 and the 50-query invocation cap.
+- Catalog (1–2 queries/≤ 30 reads), detail (2–3/≤ 50), checkout (≤ 8/one batch/≤ 30 reads/≤ 8 writes), list/detail reads, cancellation (≤ 3 reads/one batch/≤ 10 writes), provision (≤ 10/≤ 45 writes), reset (≤ 12/≤ 60 writes), cleanup (≤ 20/≤ 500) — all inside usage-model §3 and the 50-query invocation cap.
 - Issues #7/#8 now own: exact routes/schemas/error codes, canonical fingerprint fields, session cookie/hash choice with the 10 ms CPU benchmark, secret rotation, and final rate-limit values.

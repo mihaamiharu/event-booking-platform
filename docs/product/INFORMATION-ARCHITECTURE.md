@@ -31,8 +31,8 @@ Route paths are product-level proposals. The router implementation may refine pa
 | `/events/:eventSlug` | Event and session detail | Visitor | `EVT-002` |
 | `/sign-in` | Seeded attendee sign-in | Visitor | `ACC-001` |
 | `/checkout` | Ticket review and payment simulation | Attendee | `BKG-001` through `BKG-003`, `PAY-001` |
-| `/bookings` | Attendee booking list | Attendee | `BKG-005` |
-| `/bookings/:bookingReference` | Booking confirmation and detail | Attendee | `BKG-004` |
+| `/bookings` | Attendee booking list | Attendee | `BKG-005`, `BKG-007` |
+| `/bookings/:bookingReference` | Booking confirmation and detail | Attendee | `BKG-004`, `BKG-006`, `BKG-007` |
 | `/demo` | Workspace status and reset | Workspace holder | `WSP-002` through `WSP-004` |
 | `/qa/observability` | Safe request exercises and browser-session trace | Local/preview QA only; visibly disabled in production by default | `NFR-004`, `NFR-005`, `NFR-006` |
 
@@ -64,11 +64,11 @@ Shows the selected event, session, ticket type, unit price, quantity, and total.
 
 ### Booking detail
 
-Serves as both immediate confirmation and later durable detail. Refreshing it does not repeat checkout.
+Serves as both immediate confirmation and later durable detail. Refreshing it does not repeat checkout. Confirmed bookings expose the cancellation flow; cancelled bookings retain their history and cannot be cancelled again.
 
 ### My bookings
 
-Lists the active attendee's confirmed bookings newest first and provides an explicit empty state.
+Lists the active attendee's bookings newest first, including cancelled history, and provides an explicit empty state.
 
 ### Demo controls
 

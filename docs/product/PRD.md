@@ -105,15 +105,37 @@ Acceptance criteria:
 
 #### BKG-005 — Attendee booking list
 
-The platform shall allow an attendee to find their confirmed bookings after leaving the confirmation page.
+The platform shall allow an attendee to find their booking history after leaving the confirmation page.
 
 Acceptance criteria:
 
-- The list includes only confirmed bookings owned by the authenticated attendee and active workspace.
+- The list includes only bookings owned by the authenticated attendee and active workspace, including cancelled records kept for history.
 - Each result includes booking reference, event name, session start, quantity, total, and booking status.
 - Results are ordered by booking creation time with the newest first.
-- An attendee with no confirmed bookings sees an explicit empty state.
+- An attendee with no booking history sees an explicit empty state.
 - Selecting a result opens its booking detail.
+
+#### BKG-006 — Attendee booking cancellation
+
+The platform shall allow an authenticated attendee to cancel their own confirmed booking before the selected session starts.
+
+Acceptance criteria:
+
+- Cancellation is scoped to the active attendee and learner workspace.
+- A successful cancellation changes the booking status to `CANCELLED`, records when it happened, and releases exactly the booked quantity back to the session capacity.
+- The booking, booking item, and payment history remain readable after cancellation.
+- A booking cannot be cancelled after its session starts.
+
+#### BKG-007 — Booking lifecycle visibility and recovery
+
+The platform shall make booking lifecycle state visible and recoverable across the attendee's booking list and detail views.
+
+Acceptance criteria:
+
+- Confirmed and cancelled bookings are visibly distinct in list and detail views.
+- Repeating cancellation of a cancelled booking returns a stable already-cancelled outcome and does not release capacity again.
+- Missing and foreign references return the same stable not-found outcome for reads and cancellation attempts.
+- Cancellation failures expose a safe, retryable recovery path without losing the booking reference.
 
 ### Simulated payment
 
@@ -214,6 +236,10 @@ Core R1 workflows shall support current stable Chrome, Firefox, and Safari at th
 
 R1 shall present English product content, identify monetary values as IDR without fractional digits, and display event and session times in Asia/Jakarta with the WIB label.
 
+### NFR-010 — Deterministic lifecycle transitions
+
+Lifecycle writes shall be atomic, bounded to the active workspace, and reproducible from explicit seed or manipulated-time fixtures. Core cancellation UI states shall expose accessible names, roles, focus, and error recovery without horizontal overflow.
+
 ## 5. Accepted release decisions
 
 - “Event Booking Platform” remains the working name until branding is selected.
@@ -224,6 +250,7 @@ R1 shall present English product content, identify monetary values as IDR withou
 - R1 uses IDR integer prices without fractional amounts.
 - R1 uses `Asia/Jakarta` for every event and session and displays WIB.
 - R1 product content is English only.
+- Attendees may cancel a confirmed booking until its session starts; cancellation preserves the record and releases its capacity exactly once.
 
 See [Product Decisions](DECISIONS.md) for rationale and consequences.
 

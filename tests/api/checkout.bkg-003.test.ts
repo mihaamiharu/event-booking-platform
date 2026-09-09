@@ -27,8 +27,8 @@ function sessionCookie(res: Response): string {
 }
 
 async function setup(identity: string): Promise<{ ws: string; sess: string }> {
-  // Fresh provision bucket per test: miniflare collapses all local clients to
-  // one IP, so per-file identities share the 10/hour provision counter.
+  // Fresh provision bucket per test: the harness supplies a unique Cloudflare
+  // client identity so per-test identities do not share the 10/hour counter.
   // Provision abuse itself is covered in wsp-004 tests.
   resetRateCounters(BASE);
   const ws = await provision(BASE, identity);

@@ -3,8 +3,10 @@
 // server to avoid parallel miniflare instances contending over the same
 // local D1 state dir; EBP_API_BASE signals files to reuse it.
 // Each file provisions its own workspace (parallel-safe, TEST-STRATEGY §3)
-// and sends a unique X-Forwarded-For identity so rate-limit buckets never
-// leak across files. Test-only.
+// and sends a unique test identity through both CF-Connecting-IP and
+// X-Forwarded-For so rate-limit buckets never leak across files. The first
+// header is the one the Worker trusts in production and the Vite runtime may
+// supply locally, so the harness must set it explicitly. Test-only.
 import type { ChildProcess } from "node:child_process";
 import { ensureDevVars, runLocalWrangler, startVite } from "../../../tools/local-runtime.mjs";
 
@@ -48,8 +50,10 @@ export function baseUrl(port: number): string {
 }
 
 /**
- * Clear rate-limit counters. Local D1 only (miniflare normalizes every local
- * client IP, so suites cannot isolate buckets by header and must reset).
+ * Clear rate-limit counters. Local D1 only. Vite/Miniflare owns the live D1
+ * connection, so the shared runner cannot safely reset it between suites;
+ * test identities isolate normal requests and rate-sensitive tests reset
+ * their own logical scenarios where needed.
  * Each rate-sensitive file calls this in before() and runs sequentially
  * (see tools/run-api-tests.mjs --test-concurrency=1).
  */
@@ -70,6 +74,7 @@ export function resetRateCounters(base: string): void {
 export function headers(identity: string, cookie?: string): Record<string, string> {
   const h: Record<string, string> = {
     "content-type": "application/json",
+    "cf-connecting-ip": identity,
     "x-forwarded-for": identity,
   };
   if (cookie) h.cookie = `ebp_workspace=${cookie}`;

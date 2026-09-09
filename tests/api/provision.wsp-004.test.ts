@@ -57,8 +57,8 @@ describe("wsp-004 POST /api/workspaces/provision", () => {
 
   it("throttles after 10 provisions per hour per identity (WSP-001)", async () => {
     // Per-run identity: local D1 persists counters across runs by design.
-    // Fresh bucket: miniflare collapses all local clients to one IP (real
-    // deployments key by CF-Connecting-IP), so reset to simulate it.
+    // Fresh bucket: the harness supplies this identity through the same
+    // CF-Connecting-IP header the Worker uses in production.
     const identity = `${ID}-throttle-${Date.now()}`;
     resetRateCounters(BASE);
     for (let i = 0; i < 10; i++) {

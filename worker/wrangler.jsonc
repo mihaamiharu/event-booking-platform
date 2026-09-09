@@ -20,6 +20,8 @@
   "vars": {
     "SEED_VERSION": "r1-v1",
     "DEPLOYMENT_ENV": "production",
+    "QA_CLOUDFLARE_LOGS_URL": "",
+    "QA_GRAFANA_URL": "",
     "QA_OBSERVABILITY_ENABLED": "false",
     "SCENARIO_PROFILES_ENABLED": "false",
     "SCENARIO_PROFILE": "baseline"

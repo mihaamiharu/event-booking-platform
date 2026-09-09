@@ -5,25 +5,43 @@
   "compatibility_date": "2026-08-01",
   "workers_dev": true,
   "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "labs.testingwithekki.com",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": "../client/dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
-  "vars": { "SEED_VERSION": "r1-v1" },
+  "vars": {
+    "SEED_VERSION": "r1-v1",
+    "DEPLOYMENT_ENV": "production",
+    "QA_OBSERVABILITY_ENABLED": "false",
+    "SCENARIO_PROFILES_ENABLED": "false",
+    "SCENARIO_PROFILE": "baseline"
+  },
   "observability": { "enabled": true },
   "triggers": { "crons": ["0 * * * *"] },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ebp-r1-local",
-      "database_id": "local-s1-placeholder",
+      "database_name": "ebp-r1-prod",
+      "database_id": "ca3fb446-fb40-496c-b781-2e966d137930",
       "migrations_dir": "../db/migrations"
     }
   ],
   "env": {
     "preview": {
+      "vars": {
+        "DEPLOYMENT_ENV": "preview",
+        "QA_OBSERVABILITY_ENABLED": "true",
+        "SCENARIO_PROFILES_ENABLED": "false",
+        "SCENARIO_PROFILE": "baseline"
+      },
       "d1_databases": [
         {
           "binding": "DB",

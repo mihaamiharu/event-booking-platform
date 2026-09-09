@@ -4,6 +4,8 @@ WORKSPACE_SECRET=local-dev-only-workspace-secret
 SESSION_SECRET=local-dev-only-session-secret
 TURNSTILE_SECRET=dummy-disabled-locally
 DEPLOYMENT_ENV=local
+# Local QA cockpit is enabled; production keeps its explicit disabled default.
+QA_OBSERVABILITY_ENABLED=true
 # Optional external evidence links; leave blank to keep the cockpit provider-neutral.
 QA_CLOUDFLARE_LOGS_URL=
 QA_GRAFANA_URL=

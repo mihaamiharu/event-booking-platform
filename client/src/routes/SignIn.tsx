@@ -48,12 +48,12 @@ export function SignIn() {
         </ul>
       </section>
       <section className="surface auth-card" aria-label="Sign-in form">
-        <aside className="notice" aria-labelledby="demo-credentials-heading">
-          <strong id="demo-credentials-heading">Demo credentials</strong>
-          <p>Use either seeded account to explore the attendee journey:</p>
+        <aside className="notice" aria-labelledby="demo-accounts-heading">
+          <strong id="demo-accounts-heading">Demo accounts</strong>
+          <p>Use a seeded attendee account from the versioned test-data guide to explore the attendee journey.</p>
           <ul>
-            <li><code>alex.attendee@example.test</code> / <code>Attend123!</code></li>
-            <li><code>maya.attendee@example.test</code> / <code>Booked123!</code></li>
+            <li><code>alex.attendee@example.test</code></li>
+            <li><code>maya.attendee@example.test</code></li>
           </ul>
         </aside>
         {existing && (
@@ -105,7 +105,7 @@ export function SignIn() {
           </button>
         </form>
         <p id="signin-help" className="form-note">
-          Demo accounts are workspace-scoped public data: alex.attendee@example.test and maya.attendee@example.test.
+          Demo account emails are workspace-scoped public data. Passwords remain in the versioned test-data guide and are never bundled into this public client.
         </p>
       </section>
     </div>

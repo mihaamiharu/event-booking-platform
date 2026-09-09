@@ -6,7 +6,7 @@ This repository contains a standalone event-management and booking product. It i
 
 ## Git and GitHub access
 
-- Never use the GitHub CLI (`gh`) in this repository.
+- GitHub CLI (`gh`) may be used for repository issue and discussion workflow when the owner explicitly requests it.
 - Use the personal SSH remote: `git@github.com-personal:mihaamiharu/event-booking-platform.git`.
 - Use the personal SSH identity at `/Users/ekkisyam/.ssh/id_ed25519_personal` with `IdentitiesOnly=yes`.
 - Do not push, create remote issues, or otherwise change GitHub state unless the user explicitly requests it.

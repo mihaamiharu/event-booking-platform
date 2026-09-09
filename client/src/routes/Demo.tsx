@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ApiError, api, clearAttendee } from "../lib/api.ts";
+import { StatusBadge } from "../components/StatusBadge.tsx";
 
 // Workspace controls (WSP-002/003, UF-001; UI-DESIGN §3.7). Status card plus
 // explicit-confirm reset. Reset wipes this workspace's sessions, so the local
@@ -60,7 +61,6 @@ export function Demo() {
     try {
       await attemptReset();
     } catch (err) {
-      // Armed clients solve a challenge, then the reset carries the token.
       if (err instanceof ApiError && err.code === "TURNSTILE_REQUIRED") {
         const { requestChallengeToken } = await import("../lib/turnstile.ts");
         const token = await requestChallengeToken();
@@ -97,72 +97,74 @@ export function Demo() {
 
   return (
     <>
-      <h1>Demo controls</h1>
-      {state.kind === "loading" && (
-        <div className="skeleton" aria-busy="true">
-          <div aria-hidden="true">Loading workspace…</div>
-        </div>
-      )}
+      <div className="page-heading compact-heading">
+        <p className="eyebrow">Workspace utilities</p>
+        <h1>Demo controls</h1>
+        <p className="lede">Keep this temporary workspace predictable while you explore the attendee journey.</p>
+      </div>
+      {state.kind === "loading" && <div className="skeleton-card skeleton-detail" aria-busy="true" aria-label="Loading workspace" />}
       {state.kind === "error" && (
-        <div className="error" role="alert">
-          <p>Could not load workspace ({state.code}).</p>
-          <button type="button" onClick={state.retry}>
+        <div className="state-card error" role="alert">
+          <p>Reference: {state.code}</p>
+          <button className="button button-secondary" type="button" onClick={state.retry}>
             Retry
           </button>
         </div>
       )}
       {state.kind === "ready" && (
-        <>
-          {state.notice && (
-            <div className="empty" role="status">
-              <p>{state.notice}</p>
+        <div className="demo-layout">
+          <section className="surface status-card" aria-labelledby="workspace-status-heading">
+            <div className="card-topline">
+              <div>
+                <p className="eyebrow">Workspace status</p>
+                <h2 id="workspace-status-heading">Your private demo space</h2>
+              </div>
+              <StatusBadge tone={state.status.status === "ACTIVE" ? "available" : "neutral"}>
+                {state.status.status}
+              </StatusBadge>
             </div>
-          )}
-          <dl className="detail">
-            <div>
-              <dt>Status</dt>
-              <dd>{state.status.status}</dd>
-            </div>
-            <div>
-              <dt>Seed version</dt>
-              <dd>{state.status.seedVersion}</dd>
-            </div>
-            <div>
-              <dt>Provisioned</dt>
-              <dd>{state.status.seedReferenceAt}</dd>
-            </div>
-            <div>
-              <dt>Expires</dt>
-              <dd>
-                {state.status.expiresAt} ({daysRemaining(state.status.expiresAt)} days remaining)
-              </dd>
-            </div>
-          </dl>
-          <p className="muted">
-            Reset restores this workspace only — accounts, events, and capacity return to seed
-            state. Other workspaces are never affected.
-          </p>
-          {resetError && (
-            <div className="error" role="alert">
-              <p>Reset failed ({resetError}). Workspace state is unknown — retry.</p>
-            </div>
-          )}
-          <form onSubmit={reset}>
-            <div className="field">
-              <label className="radio">
-                <input
-                  type="checkbox"
-                  checked={confirm}
-                  onChange={(e) => setConfirm(e.target.checked)}
-                />
-                I understand reset deletes this workspace's bookings and signs out all sessions.
+            <dl className="detail status-detail">
+              <div className="detail-item">
+                <dt>Seed version</dt>
+                <dd>{state.status.seedVersion}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Provisioned</dt>
+                <dd>{state.status.seedReferenceAt}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Expires</dt>
+                <dd>{state.status.expiresAt}</dd>
+              </div>
+              <div className="detail-item">
+                <dt>Time remaining</dt>
+                <dd>{daysRemaining(state.status.expiresAt)} days remaining</dd>
+              </div>
+            </dl>
+          </section>
+          <section className="surface reset-card" aria-labelledby="reset-heading">
+            <p className="eyebrow">Start fresh</p>
+            <h2 id="reset-heading">Reset this workspace</h2>
+            <p className="muted">
+              Reset restores the accounts, events, ticket availability, and bookings to seed state. Other workspaces are never affected.
+            </p>
+            {state.notice && <div className="confirmation-panel compact-panel" role="status"><p>{state.notice}</p></div>}
+            {resetError && (
+              <div className="error form-error" role="alert">
+                <p>Reset failed ({resetError}). Workspace state is unknown — retry.</p>
+              </div>
+            )}
+            <form onSubmit={reset}>
+              <label className="confirm-row">
+                <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} />
+                <span>I understand reset deletes this workspace&apos;s bookings and signs out all sessions.</span>
               </label>
-            </div>
-            <button type="submit" disabled={!confirm || resetting}>
-              {resetting ? "Resetting…" : "Reset workspace"}
-            </button>
-          </form>
-        </>
+              <button className="button button-danger button-wide" type="submit" disabled={!confirm || resetting}>
+                {resetting ? "Resetting…" : "Reset workspace"}
+              </button>
+            </form>
+          </section>
+        </div>
       )}
     </>
   );

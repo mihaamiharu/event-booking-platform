@@ -174,8 +174,8 @@ describe("wsp-002 POST /api/workspaces/reset", () => {
     assert.equal(((await limited.json()) as { error: { code: string } }).error.code, "WORKSPACE_RATE_LIMITED");
     assert.ok(Number(limited.headers.get("retry-after")) > 0);
 
-    // Deliberately reuse the same forwarded IP for a fresh workspace WITHOUT
-    // wiping: 10 more fit (IP count 20 → 30) regardless of local runtime.
+    // Deliberately reuse the same test client identity for a fresh workspace
+    // WITHOUT wiping: 10 more fit (IP count 20 → 30) regardless of runtime.
     const wsB = await provision(BASE, `${ID}-rl-b`);
     for (let i = 0; i < 10; i++) {
       const res = await reset(wsB, `${ID}-rl-a`, { confirm: true });

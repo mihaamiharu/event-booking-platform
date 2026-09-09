@@ -20,8 +20,8 @@ before(async () => {
 after(() => stop());
 
 async function setup(identity: string): Promise<{ ws: string; sess: string }> {
-  // Fresh provision bucket per test (miniflare collapses local client IPs;
-  // provision abuse is covered in wsp-004 tests).
+  // Fresh provision bucket per test (the harness supplies a unique Cloudflare
+  // client identity; provision abuse is covered in wsp-004 tests).
   resetRateCounters(BASE);
   const ws = await provision(BASE, identity);
   const inRes = await fetch(`${BASE}/api/session`, {

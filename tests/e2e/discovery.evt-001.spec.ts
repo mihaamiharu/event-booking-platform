@@ -4,12 +4,14 @@ import { expect, test } from "@playwright/test";
 // First visit auto-provisions (S3 entry UX); server state is the r1-v1 seed.
 test("evt-001 discovery: catalog → detail → sold-out → not-found", async ({ page }) => {
   await page.goto("/events");
-  await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Find your next event", level: 1 })).toBeVisible();
 
   const cards = page.locator("article.card");
   await expect(cards).toHaveCount(2);
   await expect(cards.filter({ hasText: "Jakarta Design Systems Workshop" })).toBeVisible();
-  await expect(page.getByText("From IDR 150.000")).toBeVisible();
+  await expect(cards.first().getByText(/\w{3}, \d{1,2} \w{3} \d{4}/)).toBeVisible();
+  await expect(page.getByText("From").first()).toBeVisible();
+  await expect(page.getByText("IDR 150.000")).toBeVisible();
   await expect(page.getByText("Available").first()).toBeVisible();
   await expect(page.getByText("Sold out").first()).toBeVisible();
 
@@ -25,6 +27,8 @@ test("evt-001 discovery: catalog → detail → sold-out → not-found", async (
 
   await page.goto("/events/community-product-meetup");
   await expect(page.getByText("SOLD_OUT")).toBeVisible();
+  await expect(page.getByText("IDR 50.000", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue to checkout" })).toBeDisabled();
 
   await page.goto("/events/no-such-event");
   await expect(
@@ -39,7 +43,7 @@ test("evt-001 keyboard: skip link, focus order, and keyboard navigation", async 
   // links/buttons are keyboard-operable by construction.
   test.skip(browserName === "webkit", "headless WebKit has no keyboard-focusable document");
   await page.goto("/events");
-  await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Find your next event", level: 1 })).toBeVisible();
   // Headless WebKit starts with an inactive document; keyboard needs focus.
   await page.bringToFront();
 
@@ -50,7 +54,7 @@ test("evt-001 keyboard: skip link, focus order, and keyboard navigation", async 
 
   // Wait for dynamic catalog content before asserting tab order.
   await page.goto("/events");
-  await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Find your next event", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "View details" }).first()).toBeVisible();
   // Fresh load resets focus to body; Tab order: skip → brand → Events nav
   // → My bookings (S6, BKG-005) → Sign in (S4, ACC-001) → first card link.
@@ -69,13 +73,11 @@ test("evt-001 keyboard: skip link, focus order, and keyboard navigation", async 
   ).toBeVisible();
 });
 
-test("evt-001 focus semantics (webkit-safe): skip link target and landmarks", async ({
-  page,
-}) => {
+test("evt-001 focus semantics (webkit-safe): skip link target and landmarks", async ({ page }) => {
   await page.goto("/events");
-  await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Find your next event", level: 1 })).toBeVisible();
   // Programmatic focus works without an active document; proves the wiring
-  // the Tab-order test (chromium/firefox) proves the key path for.
+  // the Tab-order test (Chromium/Firefox) proves the key path for.
   await page.locator(".skip-link").focus();
   await expect(page.locator(".skip-link")).toBeFocused();
   await page.keyboard.press("Enter");
@@ -87,7 +89,7 @@ test("evt-001 focus semantics (webkit-safe): skip link target and landmarks", as
 test("evt-001 viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/events");
-  await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Find your next event", level: 1 })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - 360);
   expect(overflow).toBeLessThanOrEqual(0);
   await page.getByRole("link", { name: "View details" }).first().click();

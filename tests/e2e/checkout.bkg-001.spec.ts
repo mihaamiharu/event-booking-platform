@@ -15,7 +15,7 @@ async function openCheckout(page: Page): Promise<void> {
   await expect(
     page.getByRole("heading", { name: "Jakarta Design Systems Workshop", level: 1 }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue to checkout" }).click();
   await expect(page).toHaveURL(/\/checkout\?event=/);
   await expect(page.getByRole("heading", { name: "Checkout", level: 1 })).toBeVisible();
 }

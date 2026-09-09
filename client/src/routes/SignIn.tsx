@@ -34,60 +34,72 @@ export function SignIn() {
   };
 
   return (
-    <>
-      <h1>Sign in</h1>
-      {existing && (
-        <p className="muted">
-          Signed in as {existing.displayName} ({existing.email}).
+    <div className="auth-layout">
+      <section className="auth-intro" aria-labelledby="signin-heading">
+        <p className="eyebrow">Attendee access</p>
+        <h1 id="signin-heading">Sign in</h1>
+        <p className="lede">
+          Keep your event plans, booking references, and confirmation details in one place.
         </p>
-      )}
-      {error && (
-        <div
-          id="signin-error"
-          className="error"
-          role="alert"
-          tabIndex={-1}
-          ref={alertRef}
-          aria-live="assertive"
-        >
-          <p>Could not sign in ({error}). Check your details and try again.</p>
-        </div>
-      )}
-      <form onSubmit={submit} aria-describedby={error ? "signin-error signin-help" : "signin-help"}>
-        <div className="field">
-          <label htmlFor="signin-email">Email</label>
-          <input
-            id="signin-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-describedby={error ? "signin-error signin-help" : "signin-help"}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="signin-password">Password</label>
-          <input
-            id="signin-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-describedby={error ? "signin-error signin-help" : "signin-help"}
-          />
-        </div>
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
-      <p id="signin-help" className="muted">
-        Demo accounts (workspace-scoped, public demo data): alex.attendee@example.test /
-        maya.attendee@example.test.
-      </p>
-    </>
+        <ul className="feature-list">
+          <li>Browse published events without creating an account.</li>
+          <li>Use a seeded demo account to complete a simulated booking.</li>
+          <li>Return to your confirmed booking whenever you need it.</li>
+        </ul>
+      </section>
+      <section className="surface auth-card" aria-label="Sign-in form">
+        {existing && (
+          <p className="notice">
+            Signed in as {existing.displayName} ({existing.email}).
+          </p>
+        )}
+        {error && (
+          <div
+            id="signin-error"
+            className="error form-error"
+            role="alert"
+            tabIndex={-1}
+            ref={alertRef}
+            aria-live="assertive"
+          >
+            <p>Could not sign in ({error}). Check your details and try again.</p>
+          </div>
+        )}
+        <form onSubmit={submit} aria-describedby={error ? "signin-error signin-help" : "signin-help"}>
+          <div className="field">
+            <label htmlFor="signin-email">Email</label>
+            <input
+              id="signin-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-describedby={error ? "signin-error signin-help" : "signin-help"}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="signin-password">Password</label>
+            <input
+              id="signin-password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-describedby={error ? "signin-error signin-help" : "signin-help"}
+            />
+          </div>
+          <button className="button button-primary button-wide" type="submit" disabled={submitting}>
+            {submitting ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+        <p id="signin-help" className="form-note">
+          Demo accounts are workspace-scoped public data: alex.attendee@example.test and maya.attendee@example.test.
+        </p>
+      </section>
+    </div>
   );
 }

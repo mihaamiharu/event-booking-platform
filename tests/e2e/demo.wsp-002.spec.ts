@@ -21,7 +21,7 @@ test("wsp-002 demo: book → reset → seed restored (UF-001)", async ({ page })
 
   // One booking, then reset through the confirm flow.
   await page.goto("/events/jakarta-design-systems-workshop");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue to checkout" }).click();
   await expect(page).toHaveURL(/\/checkout\?event=/);
   await page.getByLabel("Quantity (1–5)").selectOption("1");
   await page.getByLabel("Simulation code").fill("SIMULATE-SUCCESS");
@@ -41,7 +41,7 @@ test("wsp-002 demo: book → reset → seed restored (UF-001)", async ({ page })
   await page.goto("/bookings");
   await expect(page.getByText("No bookings yet.")).toBeVisible();
   await page.goto("/events/jakarta-design-systems-workshop");
-  await expect(page.getByText("18 left").first()).toBeVisible();
+  await expect(page.getByText(/18 (left|places remaining)/).first()).toBeVisible();
 });
 
 test("wsp-002 demo viewport: no horizontal overflow at 360px (NFR-003)", async ({ page }) => {

@@ -21,16 +21,30 @@ const timeFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Jakarta",
 });
 
+function formatWibDay(at: string): string {
+  const date = new Date(at);
+  const parts = Object.fromEntries(
+    dayFmt.formatToParts(date).map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+  const jakartaMonth = Number(
+    new Intl.DateTimeFormat("en-GB", { month: "numeric", timeZone: "Asia/Jakarta" }).format(date),
+  );
+  return `${parts.weekday}, ${parts.day} ${MONTHS[jakartaMonth - 1]} ${parts.year}`;
+}
+
+export function formatWibDate(at: string): string {
+  return formatWibDay(at);
+}
+
+export function formatWibDateRange(startAt: string, endAt: string): string {
+  const start = formatWibDay(startAt);
+  const end = formatWibDay(endAt);
+  return start === end ? start : `${start} – ${end}`;
+}
+
 // `Sat, 18 Sep 2026 · 09:00–12:00 WIB` from UTC API instants.
 export function formatWibRange(startAt: string, endAt: string): string {
   const start = new Date(startAt);
   const end = new Date(endAt);
-  const parts = Object.fromEntries(
-    dayFmt.formatToParts(start).map((p) => [p.type, p.value]),
-  ) as Record<string, string>;
-  const jakartaMonth = Number(
-    new Intl.DateTimeFormat("en-GB", { month: "numeric", timeZone: "Asia/Jakarta" }).format(start),
-  );
-  const day = `${parts.weekday}, ${parts.day} ${MONTHS[jakartaMonth - 1]} ${parts.year}`;
-  return `${day} · ${timeFmt.format(start)}–${timeFmt.format(end)} WIB`;
+  return `${formatWibDay(startAt)} · ${timeFmt.format(start)}–${timeFmt.format(end)} WIB`;
 }

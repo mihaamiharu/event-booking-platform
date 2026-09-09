@@ -159,6 +159,26 @@ Only `PUBLISHED` events with a future session appear; `availabilityStatus` is `A
 
 **`GET /api/health`** — no context required. `{ "status": "ok", "seedVersion": "r1-v1" }`. Never exposes quota internals.
 
+**`GET /api/qa/config`** — no workspace context required. Returns the
+deployment-safe cockpit gate and configured external evidence links:
+
+```json
+{
+  "enabled": true,
+  "environment": "local",
+  "logViews": {
+    "cloudflare": "https://configured.example/logs",
+    "grafana": "https://configured.example/explore"
+  }
+}
+```
+
+`logViews` contains only configured credential-free HTTP(S) URLs and omits
+unset or invalid values. Local and preview enable the cockpit unless
+`QA_OBSERVABILITY_ENABLED=false`; production is disabled unless that variable
+is explicitly `true`. This endpoint never returns credentials, cookies,
+workspace identifiers, raw logs, or exercise payloads.
+
 ## 4. Quota-exhaustion mapping
 
 Per the usage model §8, Worker-request, CPU, and D1 row/storage exhaustion all surface as `SERVICE_UNAVAILABLE` (503, `Retry-After` to midnight UTC where applicable) or `STORAGE_FULL` (503) for the storage cap — never raw 1027/1102/D1 errors, never partial bookings.

@@ -29,9 +29,9 @@ Executable scenario IDs, evidence dimensions, and linked test files are maintain
 | `NFR-001` | ADR-0002, TDD free-plan controls | Deployment configuration and usage-budget review |
 | `NFR-002` | Personas, information architecture | Keyboard, focus, name, role, error and contrast checks |
 | `NFR-003` | Information architecture responsive priorities | 320px mobile and desktop viewport checks |
-| `NFR-004` | Product error catalog | Contract tests for stable codes and safe messages |
-| `NFR-005` | This matrix, executable scenario matrix, and contribution workflow | Scenario/evidence lint, PR review, and requirement-link checks |
-| `NFR-006` | Seed-data safety and security baseline | Log review and absence of real-data fields |
+| `NFR-004` | Product error catalog and QA observability cockpit | Contract tests for stable codes/safe messages plus browser correlation evidence |
+| `NFR-005` | This matrix, executable scenario matrix, contribution workflow, and QA cockpit | Scenario/evidence lint, PR review, requirement-link checks, and trace timeline tests |
+| `NFR-006` | Seed-data safety, security baseline, and QA cockpit redaction boundary | Log review, absence of real-data fields, and browser-session storage redaction tests |
 | `NFR-007` | Seed-data reset invariants | Repeat provision/reset comparison |
 | `NFR-008` | Release definition | Current Chromium, Firefox and WebKit execution |
 | `NFR-009` | Product decisions and business rules | English copy, IDR formatting, and WIB display checks |

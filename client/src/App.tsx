@@ -3,6 +3,7 @@ import {
   isBookings,
   isCheckout,
   isDemo,
+  isQaObservability,
   isSignIn,
   Link,
   matchBookingRef,
@@ -17,6 +18,7 @@ import { Demo } from "./routes/Demo.tsx";
 import { EventDetail } from "./routes/EventDetail.tsx";
 import { Events } from "./routes/Events.tsx";
 import { SignIn } from "./routes/SignIn.tsx";
+import { QAObservability } from "./routes/QAObservability.tsx";
 import { getAttendee, signOut, type Attendee } from "./lib/api.ts";
 import { PRODUCT_NAME } from "./lib/constants.ts";
 
@@ -30,6 +32,7 @@ export function App() {
   const checkoutRoute = isCheckout(path);
   const bookingsRoute = isBookings(path);
   const demoRoute = isDemo(path);
+  const qaObservabilityRoute = isQaObservability(path);
   const isEvents = path === "/events" || path === "/" || slug !== null;
   const [attendee, setAttendee] = useState<Attendee | null>(null);
 
@@ -46,15 +49,17 @@ export function App() {
           ? "My bookings"
           : demoRoute
             ? "Demo controls"
-            : bookingRef !== null
-              ? "Booking details"
-              : slug !== null
-                ? "Event details"
-                : isEvents
-                  ? "Events"
-                  : "Page not found";
+            : qaObservabilityRoute
+              ? "QA observability cockpit"
+              : bookingRef !== null
+                ? "Booking details"
+                : slug !== null
+                  ? "Event details"
+                  : isEvents
+                    ? "Events"
+                    : "Page not found";
     document.title = `${routeTitle} — ${PRODUCT_NAME}`;
-  }, [bookingRef, bookingsRoute, checkoutRoute, demoRoute, isEvents, signInRoute, slug, path]);
+  }, [bookingRef, bookingsRoute, checkoutRoute, demoRoute, isEvents, qaObservabilityRoute, signInRoute, slug, path]);
 
   const onSignOut = async () => {
     await signOut();
@@ -69,6 +74,8 @@ export function App() {
         <Checkout />
       ) : bookingsRoute ? (
         <Bookings />
+      ) : qaObservabilityRoute ? (
+        <QAObservability />
       ) : demoRoute ? (
         <Demo />
       ) : bookingRef !== null ? (

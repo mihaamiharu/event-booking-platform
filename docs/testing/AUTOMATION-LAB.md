@@ -14,6 +14,14 @@ Use `http://127.0.0.1:5173` for API and UI work. For Playwright, use `npm run te
 
 For a compact API smoke journey, run `npm run lab:api` while the dev server is running. It provisions a workspace, signs in Alex, reads the catalog, performs one simulated decline and prints only safe status summaries. It never prints passwords, cookies, payment codes, or raw workspace IDs.
 
+For browser-observed request evidence, open
+`http://127.0.0.1:5173/qa/observability`. The QA cockpit runs the same public
+routes, shows status/duration/response code/correlation IDs, and retains only
+that safe metadata in `sessionStorage` for the current browser session. It
+does not display raw response bodies, passwords, cookies, payment inputs, or
+server logs. Provider links, when configured with `QA_CLOUDFLARE_LOGS_URL` or
+`QA_GRAFANA_URL`, open the external log view for correlation-ID lookup.
+
 ## API practice with a cookie jar
 
 The API requires a workspace cookie and protected operations require a session cookie. Any HTTP client that preserves `Set-Cookie` can exercise the flow:

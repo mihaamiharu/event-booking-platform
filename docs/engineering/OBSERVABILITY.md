@@ -48,3 +48,36 @@ Official references:
 - correlation lookup from a failed learner scenario.
 
 Any export must use low-cardinality labels such as environment, service, route, and status. Keep correlation IDs and workspace pseudonyms in the log body for investigation.
+
+## QA observability cockpit (NFR-004/NFR-005/NFR-006)
+
+Local and disposable preview runs expose `/qa/observability`. The page is a
+safe request-and-trace surface, not a log viewer. It can run health, event
+discovery/detail, sign-in, and payment-decline exercises, then records only
+the browser-observed method/path, status, duration, correlation ID, and stable
+error reference in the current browser session. It does not record response
+bodies, passwords, cookies, workspace IDs, workspace secrets, payment
+simulation inputs, or raw server log payloads.
+
+The page obtains its gate and optional provider links from
+`GET /api/qa/config`. Local and preview are enabled by default; set
+`QA_OBSERVABILITY_ENABLED=false` to turn the page off. Production is disabled
+unless `QA_OBSERVABILITY_ENABLED=true` is explicitly configured. Optional
+`QA_CLOUDFLARE_LOGS_URL` and `QA_GRAFANA_URL` values are exposed only as
+credential-free HTTP(S) links when the cockpit is enabled; URLs with embedded
+user information or sensitive query keys are omitted. The UI clearly separates client
+evidence from provider-held log evidence and never fetches log contents.
+
+### Tester workflow
+
+1. Start local development or a disposable preview and open
+   `/qa/observability`.
+2. Enter the seeded QA password only in the masked sign-in field when running
+   that exercise; the field is cleared after the request and is not stored.
+3. Run all, or run individual exercises. Record the safe timeline evidence,
+   especially the correlation ID for failed requests.
+4. Use the configured Cloudflare Workers Logs or Grafana link to search the
+   correlation ID in the provider console. The cockpit does not display the
+   returned log record.
+5. Clear the browser timeline after attaching the evidence to a manual QA
+   execution record.

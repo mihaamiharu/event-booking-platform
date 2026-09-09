@@ -46,6 +46,7 @@ directory, then run `npm run setup:local` again.
 | `npm run test:e2e:headed --workspace=tests` | Headed daily practice run |
 | `npm run test:e2e:ui --workspace=tests` | Playwright UI mode |
 | `npm run lab:api` | Safe API smoke journey against a running local server |
+| `http://127.0.0.1:5173/qa/observability` | QA request exercises and browser-session correlation timeline |
 | `npm run test:traceability` | Validate the requirement/evidence matrix |
 | `npm run test:local` | Full local verification sequence |
 | `npm run typecheck` | TypeScript checks for all workspaces |

@@ -1,0 +1,24 @@
+name: preview-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Disposable preview Worker URL"
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Run disposable preview smoke
+        env:
+          EBP_PREVIEW_BASE: ${{ inputs.base_url }}
+        run: npm run smoke:preview

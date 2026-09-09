@@ -5,6 +5,7 @@ import app from "./app.ts";
 import { CLEANUP_BATCH_LIMIT, d1CleanupStore, expiryCutoffIso, runCleanup } from "./cleanup.ts";
 import type { WorkerEnv } from "./config.ts";
 import { newMeta } from "./db.ts";
+import { emitLog, newCorrelationId } from "./logger.ts";
 
 // Minimal Cron event shape (no @cloudflare/workers-types in R1).
 interface CronEvent {
@@ -27,8 +28,13 @@ export default {
       batchLimit: CLEANUP_BATCH_LIMIT,
     });
     // Count-only summary: safe to always log (AUTH-SECURITY §7).
-    console.log(
-      `cleanup tick: expired=${summary.expired} rows_read=${meta.rows_read} rows_written=${meta.rows_written}`,
-    );
+    emitLog({
+      event: "worker.cleanup",
+      timestamp: new Date().toISOString(),
+      correlationId: newCorrelationId(),
+      rowsRead: meta.rows_read,
+      rowsWritten: meta.rows_written,
+      expired: summary.expired,
+    });
   },
 };

@@ -27,6 +27,8 @@
 - [R1 UI design and wireframes](engineering/UI-DESIGN.md)
 - [R1 authentication and workspace security](engineering/AUTH-SECURITY.md)
 - [Local development](engineering/LOCAL-DEVELOPMENT.md)
+- [Disposable preview smoke](engineering/PREVIEW-SMOKE.md)
+- [Observability](engineering/OBSERVABILITY.md)
 - [Architecture decision records](adr/README.md)
 
 ## Releases and testing
@@ -34,6 +36,8 @@
 - [R1 release definition](releases/RELEASE-001.md)
 - [R1 seed and test data](testing/TEST-DATA.md)
 - [R1 test strategy](testing/TEST-STRATEGY.md)
+- [Daily automation lab](testing/AUTOMATION-LAB.md)
+- [Manual QA practice pack](testing/manual/README.md)
 
 ## Planning
 

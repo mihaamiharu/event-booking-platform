@@ -5,6 +5,11 @@ import { Hono } from "hono";
 import type { WorkerEnv } from "./config.ts";
 import { first, newMeta } from "./db.ts";
 import { err } from "./errors.ts";
+import {
+  emitLog,
+  newCorrelationId,
+  workspacePseudonym,
+} from "./logger.ts";
 import { bookings } from "./routes/bookings.ts";
 import { checkout } from "./routes/checkout.ts";
 import { events } from "./routes/events.ts";
@@ -19,10 +24,63 @@ import {
 
 export interface AppContext {
   Bindings: WorkerEnv;
-  Variables: { workspace: WorkspaceRow };
+  Variables: {
+    workspace: WorkspaceRow;
+    requestContext: { correlationId: string; startedAt: number };
+  };
 }
 
 const app = new Hono<AppContext>();
+
+function normalizedRoute(path: string): string {
+  return path
+    .replace(/\/BKG-[^/]+$/, "/:reference")
+    .replace(/\/events\/[^/]+$/, "/events/:slug");
+}
+
+// Every dynamic request has one correlation ID shared by logs, headers, and
+// error bodies. The workspace pseudonym is added only after the scope
+// middleware has resolved it, so missing-workspace failures remain safe.
+app.use("/api/*", async (c, next) => {
+  const correlationId = newCorrelationId();
+  const startedAt = performance.now();
+  c.set("requestContext", { correlationId, startedAt });
+
+  try {
+    await next();
+  } catch (error) {
+    emitLog({
+      event: "worker.exception",
+      timestamp: new Date().toISOString(),
+      correlationId,
+      method: c.req.method,
+      route: normalizedRoute(c.req.path),
+      message: error instanceof Error ? error.name : "unknown",
+    });
+    throw error;
+  }
+
+  const response = c.res;
+  const responseCorrelationId = response.headers.get("x-correlation-id") ?? correlationId;
+  try {
+    response.headers.set("x-correlation-id", responseCorrelationId);
+  } catch {
+    // Some runtimes expose immutable response headers; error() already set
+    // the header and successful responses still retain the log ID.
+  }
+  const workspace = (c.var as { workspace?: WorkspaceRow }).workspace;
+  emitLog({
+    event: "api.request",
+    timestamp: new Date().toISOString(),
+    correlationId: responseCorrelationId,
+    method: c.req.method,
+    route: normalizedRoute(c.req.path),
+    status: response.status,
+    durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+    workspace: await workspacePseudonym(workspace?.id),
+    errorCode: response.status >= 400 ? response.headers.get("x-error-code") ?? undefined : undefined,
+  });
+});
 
 app.get("/api/health", (c) => {
   return c.json({

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ApiError, api } from "../lib/api.ts";
+import { ApiError, api, errorReference } from "../lib/api.ts";
 import { Link } from "../router.tsx";
 import { formatIdr, formatWibRange } from "../lib/format.ts";
 import { StatusBadge } from "../components/StatusBadge.tsx";
@@ -56,7 +56,7 @@ export function BookingDetail({ reference }: { reference: string }) {
         } else if (e instanceof ApiError && e.code === "BOOKING_NOT_FOUND") {
           setState({ kind: "not-found" });
         } else {
-          setState({ kind: "error", code: e instanceof ApiError ? e.code : "UNEXPECTED_ERROR", retry: load });
+          setState({ kind: "error", code: errorReference(e), retry: load });
         }
       }
     };

@@ -11,7 +11,12 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
-  "vars": { "SEED_VERSION": "r1-v1" },
+  "vars": {
+    "SEED_VERSION": "r1-v1",
+    "DEPLOYMENT_ENV": "production",
+    "SCENARIO_PROFILES_ENABLED": "false",
+    "SCENARIO_PROFILE": "baseline"
+  },
   "observability": { "enabled": true },
   "triggers": { "crons": ["0 * * * *"] },
   "d1_databases": [
@@ -24,6 +29,11 @@
   ],
   "env": {
     "preview": {
+      "vars": {
+        "DEPLOYMENT_ENV": "preview",
+        "SCENARIO_PROFILES_ENABLED": "false",
+        "SCENARIO_PROFILE": "baseline"
+      },
       "d1_databases": [
         {
           "binding": "DB",

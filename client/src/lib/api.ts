@@ -8,14 +8,25 @@ export interface ApiErrorShape {
 export class ApiError extends Error {
   status: number;
   code: string;
+  correlationId?: string;
   fields?: Record<string, string>;
 
   constructor(status: number, shape: ApiErrorShape) {
     super(shape.error.message);
     this.status = status;
     this.code = shape.error.code;
+    this.correlationId = shape.error.correlationId;
     this.fields = shape.error.fields;
   }
+}
+
+export function errorReference(error: unknown): string {
+  if (!(error instanceof ApiError)) return "UNEXPECTED_ERROR";
+  return formatErrorReference(error.code, error.correlationId);
+}
+
+export function formatErrorReference(code: string, correlationId?: string): string {
+  return correlationId ? `${code} (reference ${correlationId})` : code;
 }
 
 async function provision(token?: string): Promise<void> {

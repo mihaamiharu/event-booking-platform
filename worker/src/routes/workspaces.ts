@@ -18,13 +18,16 @@ import {
   WORKSPACE_TTL_MS,
   type WorkspaceRow,
 } from "../workspace.ts";
+import { scenarioEnabled } from "../scenario.ts";
 
 export async function touchActivity(
   meta: D1Meta,
   db: D1Database,
   workspaceId: string,
   nowIso: string,
+  enabled = true,
 ): Promise<void> {
+  if (!enabled) return;
   await run(meta, db, "UPDATE workspaces SET last_active_at = ?1 WHERE id = ?2", nowIso, workspaceId);
 }
 
@@ -159,10 +162,11 @@ workspaces.post("/provision", async (c) => {
         existing.status === "ACTIVE" &&
         !isExpired(existing.last_active_at, nowMs)
       ) {
-        await touchActivity(meta, db, wid, nowIso);
+        await touchActivity(meta, db, wid, nowIso, !scenarioEnabled(c.env, "wsp-activity-frozen"));
+        const activeAt = scenarioEnabled(c.env, "wsp-activity-frozen") ? existing.last_active_at : nowIso;
         return withCookieAndMeta(
           c,
-          workspaceShape({ ...existing, last_active_at: nowIso }),
+          workspaceShape({ ...existing, last_active_at: activeAt }),
           meta,
           await signWorkspace(wid, secret),
           requestIsSecure(c.req.raw),
@@ -204,9 +208,10 @@ workspaces.get("/status", async (c) => {
   const meta = newMeta();
   const ws = c.get("workspace");
   const nowIso = new Date().toISOString();
-  await touchActivity(meta, c.env.DB, ws.id, nowIso);
+  await touchActivity(meta, c.env.DB, ws.id, nowIso, !scenarioEnabled(c.env, "wsp-activity-frozen"));
+  const activeAt = scenarioEnabled(c.env, "wsp-activity-frozen") ? ws.last_active_at : nowIso;
   return c.json({
-    workspace: { ...workspaceShape(ws).workspace, lastActiveAt: nowIso },
+    workspace: { ...workspaceShape({ ...ws, last_active_at: activeAt }).workspace, lastActiveAt: activeAt },
     meta,
   });
 });

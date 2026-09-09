@@ -9,6 +9,7 @@ import { d1BatchDb, first, newMeta, run, type D1Meta } from "../db.ts";
 import { err } from "../errors.ts";
 import { checkoutFingerprint, isIdempotencyKey, newBookingReference } from "../idempotency.ts";
 import { resolveSession } from "../session.ts";
+import { scenarioEnabled } from "../scenario.ts";
 import { touchActivity } from "./workspaces.ts";
 
 const SUCCESS_CODE = "SIMULATE-SUCCESS";
@@ -223,7 +224,8 @@ checkout.post("/", async (c) => {
       message: "Ticket type does not belong to the selected session.",
     });
   }
-  const totalIdr = ticket.price_idr * qty;
+  const unitPriceIdr = scenarioEnabled(c.env, "bkg-stale-price") ? ticket.price_idr + 1000 : ticket.price_idr;
+  const totalIdr = unitPriceIdr * qty;
   if (es.capacity - es.confirmed_quantity < qty) {
     return err(409, "CAPACITY_INSUFFICIENT", {
       message: "Not enough places remain for this session.",
@@ -250,7 +252,7 @@ checkout.post("/", async (c) => {
     } catch {
       return err(503, "SERVICE_UNAVAILABLE", { message: "Checkout unsettled; retry with a new key." });
     }
-    await touchActivity(meta, db, ws.id, now);
+    await touchActivity(meta, db, ws.id, now, !scenarioEnabled(c.env, "wsp-activity-frozen"));
     return err(422, "PAYMENT_DECLINED", { message: "Payment was declined; start a new attempt." });
   }
 
@@ -261,7 +263,7 @@ checkout.post("/", async (c) => {
     db,
     `UPDATE event_sessions SET confirmed_quantity = confirmed_quantity + ?1
       WHERE id = ?2 AND workspace_id = ?3
-        AND confirmed_quantity + ?1 <= capacity`,
+        ${scenarioEnabled(c.env, "bkg-capacity-bypass") ? "" : "AND confirmed_quantity + ?1 <= capacity"}`,
     qty,
     es.id,
     ws.id,
@@ -321,7 +323,7 @@ checkout.post("/", async (c) => {
     return err(503, "SERVICE_UNAVAILABLE", { message: "Checkout unsettled; retry with a new key." });
   }
 
-  await touchActivity(meta, db, ws.id, now);
+  await touchActivity(meta, db, ws.id, now, !scenarioEnabled(c.env, "wsp-activity-frozen"));
   return c.json(
     {
       booking: {
@@ -330,7 +332,7 @@ checkout.post("/", async (c) => {
         eventSessionId: es.id,
         ticketTypeId: ticket.id,
         quantity: qty,
-        unitPriceIdr: ticket.price_idr,
+        unitPriceIdr,
         totalIdr,
         currency: "IDR",
         paymentStatus: "SUCCEEDED",

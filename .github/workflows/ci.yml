@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -22,6 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint:req-ids
+      - run: npm run test:traceability
       - run: npm run lint:redaction
       - run: npm run test:unit
       - run: npm run test:db
@@ -33,3 +37,13 @@ jobs:
       - if: runner.os != 'Linux'
         run: npm run install:browsers --workspace=tests
       - run: npm run test:e2e
+      - name: Upload browser failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ matrix.os }}-${{ github.run_id }}
+          path: |
+            tests/test-results/
+            tests/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

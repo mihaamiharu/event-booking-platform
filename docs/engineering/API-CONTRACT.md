@@ -29,7 +29,7 @@
 ```
 
 - `code` is stable and listed in §6; `message` is English R1 copy and may change without notice.
-- `correlationId` is present on 409/422/429/5xx and on auth failures for operator lookup; never include stack traces, SQL, secrets, tokens, or cross-workspace existence clues.
+- `correlationId` is present on 409/422/429/5xx and on auth failures for operator lookup; the same opaque request ID is returned as `x-correlation-id` and is searchable in structured logs. Never include stack traces, SQL, secrets, tokens, or cross-workspace existence clues.
 - Validation failures create no booking and consume no capacity.
 
 ### 1.3 Context and authorization
@@ -158,6 +158,26 @@ Only `PUBLISHED` events with a future session appear; `availabilityStatus` is `A
 ### 3.6 Operational
 
 **`GET /api/health`** — no context required. `{ "status": "ok", "seedVersion": "r1-v1" }`. Never exposes quota internals.
+
+**`GET /api/qa/config`** — no workspace context required. Returns the
+deployment-safe cockpit gate and configured external evidence links:
+
+```json
+{
+  "enabled": true,
+  "environment": "local",
+  "logViews": {
+    "cloudflare": "https://configured.example/logs",
+    "grafana": "https://configured.example/explore"
+  }
+}
+```
+
+`logViews` contains only configured credential-free HTTP(S) URLs and omits
+unset or invalid values. Local and preview enable the cockpit unless
+`QA_OBSERVABILITY_ENABLED=false`; production is disabled unless that variable
+is explicitly `true`. This endpoint never returns credentials, cookies,
+workspace identifiers, raw logs, or exercise payloads.
 
 ## 4. Quota-exhaustion mapping
 

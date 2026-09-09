@@ -74,6 +74,10 @@ export function isDemo(path: string): boolean {
   return path === "/demo" || path === "/demo/";
 }
 
+export function isQaObservability(path: string): boolean {
+  return path === "/qa/observability" || path === "/qa/observability/";
+}
+
 export function matchBookingRef(path: string): string | null {
   const m = /^\/bookings\/([^/]+)\/?$/.exec(path);
   return m ? decodeURIComponent(m[1]!) : null;

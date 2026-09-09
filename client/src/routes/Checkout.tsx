@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, navigate } from "../router.tsx";
-import { ApiError, api, getAttendee } from "../lib/api.ts";
+import { ApiError, api, formatErrorReference, getAttendee } from "../lib/api.ts";
 import { formatIdr, formatWibRange } from "../lib/format.ts";
 
 // Checkout route (BKG-001/002/003, PAY-001; UF-004/005; UI-DESIGN §3.4, §3.5).
@@ -40,7 +40,7 @@ type State =
   | { kind: "loading" }
   | { kind: "signin" }
   | { kind: "form"; event: Detail }
-  | { kind: "error"; code: string; event?: Detail; retry: () => void };
+  | { kind: "error"; code: string; reference?: string; event?: Detail; retry: () => void };
 
 export function Checkout() {
   const attendee = getAttendee();
@@ -68,7 +68,7 @@ export function Checkout() {
       } catch (e) {
         if (cancelled) return;
         const code = e instanceof ApiError ? e.code : "UNEXPECTED_ERROR";
-        setState({ kind: "error", code, retry: load });
+        setState({ kind: "error", code, reference: e instanceof ApiError ? e.correlationId : undefined, retry: load });
       }
     };
     void load();
@@ -148,6 +148,7 @@ export function Checkout() {
       navigate(`/bookings/${encodeURIComponent(res.booking.reference)}?fresh=1`);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : "UNEXPECTED_ERROR";
+      const reference = e instanceof ApiError ? e.correlationId : undefined;
       if (code === "AUTH_REQUIRED") {
         setState({ kind: "signin" });
       } else if (
@@ -157,12 +158,12 @@ export function Checkout() {
       ) {
         try {
           const res = await api<{ data: Detail }>(`/api/events/${encodeURIComponent(event.slug)}`);
-          setState({ kind: "error", code, event: res.data, retry: () => setState({ kind: "form", event: res.data }) });
+          setState({ kind: "error", code, reference, event: res.data, retry: () => setState({ kind: "form", event: res.data }) });
         } catch {
-          setState({ kind: "error", code, event, retry: () => setState({ kind: "form", event }) });
+          setState({ kind: "error", code, reference, event, retry: () => setState({ kind: "form", event }) });
         }
       } else {
-        setState({ kind: "error", code, event, retry: () => setState({ kind: "form", event }) });
+        setState({ kind: "error", code, reference, event, retry: () => setState({ kind: "form", event }) });
       }
     } finally {
       setSubmitting(false);
@@ -196,7 +197,7 @@ export function Checkout() {
                 {errState.code === "IDEMPOTENCY_CONFLICT" &&
                   "This attempt was already used with different input (IDEMPOTENCY_CONFLICT). Start a new attempt."}
                 {!['PAYMENT_DECLINED', 'CAPACITY_INSUFFICIENT', 'IDEMPOTENCY_CONFLICT'].includes(errState.code) &&
-                  `Could not complete checkout (${errState.code}).`}
+                  `Could not complete checkout (${formatErrorReference(errState.code, errState.reference)}).`}
               </p>
               <button className="button button-secondary button-small" type="button" onClick={errState.retry}>
                 {errState.code === "PAYMENT_DECLINED" ? "Try again" : "Back to selection"}

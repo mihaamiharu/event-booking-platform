@@ -17,11 +17,13 @@ export function err(
     error: { code, message: opts.message ?? code },
   };
   if (opts.fields) body.error.fields = opts.fields;
-  if (opts.correlation !== false && status !== 400) {
-    body.error.correlationId = crypto.randomUUID();
-  }
+  const correlationId = opts.correlation !== false && status !== 400 ? crypto.randomUUID() : undefined;
+  if (correlationId) body.error.correlationId = correlationId;
+  const headers = new Headers({ "content-type": "application/json" });
+  headers.set("x-error-code", code);
+  if (correlationId) headers.set("x-correlation-id", correlationId);
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers,
   });
 }

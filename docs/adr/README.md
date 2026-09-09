@@ -30,3 +30,5 @@ Architecture Decision Records explain material choices that affect product scope
 | [0007](ADR-0007-react-vite-spa-client.md) | Use React + Vite (SPA) for the R1 client | Accepted |
 | [0008](ADR-0008-d1-foreign-key-enforcement.md) | Treat D1 foreign keys as enforced; share one delete order | Accepted |
 | [0009](ADR-0009-cloudflare-vite-local-development.md) | Use the Cloudflare Vite plugin for local development | Accepted |
+| [0010](ADR-0010-browser-matrix-and-observability.md) | Restore the browser matrix and keep observability provider-neutral | Accepted |
+| [0011](ADR-0011-qa-observability-cockpit.md) | Use a safe QA request-and-trace observability cockpit | Accepted |

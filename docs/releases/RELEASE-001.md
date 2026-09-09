@@ -57,7 +57,7 @@ An attendee can use a deterministic learner workspace to sign in, discover a pub
 - Workspace provisioning and reset could consume free-plan writes if abused.
 - Relative seed-date calculation must agree across local, preview, and production environments.
 - The public `workers.dev` name cannot be finalized before the Worker name is selected.
-- Firefox/WebKit are not exercised in R1 (owner decision 2026-09-08; Chromium-only matrix) — NFR-008 verification beyond Chromium is deferred, not waived.
+- The three-browser matrix must remain executable in CI; see ADR-0010. A browser-engine failure is a release-quality failure, not silent scope reduction.
 
 ## R1 verification evidence (S8, 2026-09-08)
 
@@ -72,9 +72,9 @@ workspace-scoped (isolation soak, T-04); checkout idempotent with no
 overbooking (T-08/T-09, SPIKE-B gated pattern); row budgets reconciled in the
 usage model.
 
-Quality gate: full local matrix green — unit, API (61), DB, a11y/keyboard
+Quality gate: full local matrix green — unit, API, DB, a11y/keyboard
 passes, 360px + desktop viewports (NFR-003 cited), error-stability +
-redaction + CSRF harnesses, Chromium e2e 18/18. Disposable preview run:
+redaction + CSRF harnesses, Chromium/Firefox/WebKit E2E. Disposable preview run:
 migrate-clean → seed → exercise (catalog, sign-in, decline, booking) →
 reset → re-exercise (seeded-only state) → resources deleted; no secrets,
 database IDs, or preview URLs retained.

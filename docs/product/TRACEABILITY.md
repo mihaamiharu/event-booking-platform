@@ -4,6 +4,8 @@
 
 This matrix connects accepted product behavior to user flow, business rules, interface, seed state, and planned verification. API operations are specified in [R1 public API contract](../../engineering/API-CONTRACT.md) §2 (requirement → operation matrix); database entities are specified in [R1 data design](../../engineering/DATA-DESIGN.md) §2.
 
+Executable scenario IDs, evidence dimensions, and linked test files are maintained in [SCENARIO-MATRIX.json](../testing/SCENARIO-MATRIX.json) and validated by `npm run test:traceability`. Manual execution scenarios are in [the QA practice pack](../testing/manual/README.md).
+
 | Requirement | User flow | Business rules | Primary interface | Seed or scenario | Planned evidence |
 | --- | --- | --- | --- | --- | --- |
 | `ACC-001` | `UF-002` | `BR-ACC-001`, `BR-ACC-002` | Sign in, sign out | Alex and Maya accounts | UI, API, session and authorization tests |
@@ -27,9 +29,9 @@ This matrix connects accepted product behavior to user flow, business rules, int
 | `NFR-001` | ADR-0002, TDD free-plan controls | Deployment configuration and usage-budget review |
 | `NFR-002` | Personas, information architecture | Keyboard, focus, name, role, error and contrast checks |
 | `NFR-003` | Information architecture responsive priorities | 320px mobile and desktop viewport checks |
-| `NFR-004` | Product error catalog | Contract tests for stable codes and safe messages |
-| `NFR-005` | This matrix and contribution workflow | PR review and requirement-link checks |
-| `NFR-006` | Seed-data safety and security baseline | Log review and absence of real-data fields |
+| `NFR-004` | Product error catalog and QA observability cockpit | Contract tests for stable codes/safe messages plus browser correlation evidence |
+| `NFR-005` | This matrix, executable scenario matrix, contribution workflow, and QA cockpit | Scenario/evidence lint, PR review, requirement-link checks, and trace timeline tests |
+| `NFR-006` | Seed-data safety, security baseline, and QA cockpit redaction boundary | Log review, absence of real-data fields, and browser-session storage redaction tests |
 | `NFR-007` | Seed-data reset invariants | Repeat provision/reset comparison |
 | `NFR-008` | Release definition | Current Chromium, Firefox and WebKit execution |
 | `NFR-009` | Product decisions and business rules | English copy, IDR formatting, and WIB display checks |

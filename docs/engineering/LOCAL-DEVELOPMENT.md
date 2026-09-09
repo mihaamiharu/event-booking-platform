@@ -9,7 +9,7 @@ local-data operations, deployment, and remote resources.
 
 - Node.js 22 or newer
 - npm (the repository uses the committed `package-lock.json`)
-- Chromium only when running the Playwright suite
+- Chromium, Firefox, and WebKit when running the full Playwright suite
 
 Cloudflare login is not required for local development. It is required only
 for commands that access or deploy remote Cloudflare resources.
@@ -43,6 +43,11 @@ directory, then run `npm run setup:local` again.
 | `npm run test:db` | SQLite-backed database-state tests |
 | `npm run test:api` | API tests against one Vite/Worker runtime |
 | `npm run test:e2e --workspace=tests` | Playwright browser tests using the preview runtime |
+| `npm run test:e2e:headed --workspace=tests` | Headed daily practice run |
+| `npm run test:e2e:ui --workspace=tests` | Playwright UI mode |
+| `npm run lab:api` | Safe API smoke journey against a running local server |
+| `http://127.0.0.1:5173/qa/observability` | QA request exercises and browser-session correlation timeline |
+| `npm run test:traceability` | Validate the requirement/evidence matrix |
 | `npm run test:local` | Full local verification sequence |
 | `npm run typecheck` | TypeScript checks for all workspaces |
 

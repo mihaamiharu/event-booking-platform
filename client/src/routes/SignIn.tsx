@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { navigate } from "../router.tsx";
-import { ApiError, getAttendee, safeNextPath, signIn } from "../lib/api.ts";
+import { ApiError, errorReference, getAttendee, safeNextPath, signIn } from "../lib/api.ts";
 
 // Sign-in route (ACC-001, UF-002; UI-DESIGN §3.3, §6).
 // One non-enumerating error summary (role=alert), focus moved to it on
@@ -27,7 +27,7 @@ export function SignIn() {
       const next = safeNextPath(new URLSearchParams(window.location.search).get("next"));
       navigate(next);
     } catch (err) {
-      setError(err instanceof ApiError ? `${err.code}: ${err.message}` : "UNEXPECTED_ERROR");
+      setError(err instanceof ApiError ? `${errorReference(err)}: ${err.message}` : "UNEXPECTED_ERROR");
     } finally {
       setSubmitting(false);
     }

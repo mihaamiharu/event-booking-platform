@@ -20,6 +20,9 @@
     "test:db": "node --experimental-strip-types --no-warnings --test \"tests/db/**/*.test.ts\"",
     "test:e2e": "npm run test:e2e --workspace=tests",
     "serve:e2e": "node tools/serve-e2e.mjs",
+    "lab:api": "node tools/lab-api.mjs",
+    "smoke:preview": "node tools/preview-smoke.mjs",
+    "test:traceability": "node tools/check-traceability.mjs",
     "test:api": "node tools/run-api-tests.mjs",
     "test:local": "npm run typecheck && npm run lint:req-ids && npm run lint:redaction && npm run test:unit && npm run test:db && npm run test:api && npm run test:e2e"
   },

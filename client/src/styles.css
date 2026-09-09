@@ -646,6 +646,7 @@ h2 {
   display: grid;
   align-items: start;
   gap: var(--space-5);
+  min-width: 0;
 }
 
 .detail-layout {
@@ -839,6 +840,8 @@ h2 {
 .field input,
 .field select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 48px;
   padding: 10px 12px;
   color: var(--ink);
@@ -876,6 +879,13 @@ form > .button,
 
 .checkout-form-card form {
   max-width: 640px;
+  min-width: 0;
+}
+
+.checkout-form-card,
+.order-summary {
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .order-summary {
@@ -1039,6 +1049,81 @@ form > .button,
   grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
 }
 
+.qa-layout {
+  display: grid;
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: var(--space-5);
+}
+
+.qa-exercises,
+.qa-links,
+.qa-trace {
+  padding: var(--space-6);
+}
+
+.qa-safety-note {
+  margin-bottom: var(--space-5);
+}
+
+.qa-action-list,
+.qa-link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+}
+
+.qa-exercises form {
+  margin: var(--space-6) 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.qa-form-label {
+  margin-bottom: var(--space-3);
+}
+
+.qa-trace {
+  margin-top: var(--space-5);
+}
+
+.qa-trace-list {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qa-trace-item {
+  padding: var(--space-4);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.qa-trace-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.qa-trace-detail {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.qa-trace-detail .detail-item {
+  min-width: 0;
+}
+
+.qa-trace-detail code {
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+
 .status-card .card-topline {
   align-items: flex-start;
   margin-bottom: var(--space-6);
@@ -1110,6 +1195,7 @@ form > .button,
   .detail-layout,
   .checkout-layout,
   .demo-layout,
+  .qa-layout,
   .auth-layout {
     grid-template-columns: 1fr;
   }
@@ -1173,7 +1259,8 @@ form > .button,
   .booking-grid,
   .skeleton-grid,
   .detail,
-  .status-detail {
+  .status-detail,
+  .qa-trace-detail {
     grid-template-columns: 1fr;
   }
 

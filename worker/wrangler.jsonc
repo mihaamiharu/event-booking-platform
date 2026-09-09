@@ -6,7 +6,7 @@
   "workers_dev": true,
   "preview_urls": false,
   "assets": {
-    "directory": "../client/dist",
+    "directory": "../client/dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
@@ -18,7 +18,8 @@
     {
       "binding": "DB",
       "database_name": "ebp-r1-local",
-      "database_id": "local-s1-placeholder"
+      "database_id": "local-s1-placeholder",
+      "migrations_dir": "../db/migrations"
     }
   ],
   "env": {
@@ -27,7 +28,8 @@
         {
           "binding": "DB",
           "database_name": "ebp-preview",
-          "database_id": "preview-id-swapped-at-deploy-time"
+          "database_id": "preview-id-swapped-at-deploy-time",
+          "migrations_dir": "../db/migrations"
         }
       ]
     }

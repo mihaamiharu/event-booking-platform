@@ -26,6 +26,7 @@
 - [R1 public API contract](engineering/API-CONTRACT.md)
 - [R1 UI design and wireframes](engineering/UI-DESIGN.md)
 - [R1 authentication and workspace security](engineering/AUTH-SECURITY.md)
+- [Local development](engineering/LOCAL-DEVELOPMENT.md)
 - [Architecture decision records](adr/README.md)
 
 ## Releases and testing
@@ -44,4 +45,4 @@
 
 Accepted product behavior lives in the PRD and business rules. Decision logs and ADRs preserve rationale. GitHub issues track review and work. Pull requests update documentation and implementation together.
 
-R1 product discovery is ready for owner review. API, ERD, security, Cloudflare quota, UI design, and implementation planning belong to the next engineering-design stage.
+R1 implementation is in progress. The current local-development path uses Cloudflare's Vite plugin with the existing Worker configuration; see [Local development](engineering/LOCAL-DEVELOPMENT.md) and [ADR-0009](adr/ADR-0009-cloudflare-vite-local-development.md).

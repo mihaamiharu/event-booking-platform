@@ -48,10 +48,12 @@ test("evt-001 keyboard: skip link, focus order, and keyboard navigation", async 
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
 
-  // Fresh load resets focus to body; Tab order: skip → brand → Events nav
-  // → My bookings (S6, BKG-005) → Sign in (S4, ACC-001) → first card link.
+  // Wait for dynamic catalog content before asserting tab order.
   await page.goto("/events");
   await expect(page.getByRole("heading", { name: "Events", level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: "View details" }).first()).toBeVisible();
+  // Fresh load resets focus to body; Tab order: skip → brand → Events nav
+  // → My bookings (S6, BKG-005) → Sign in (S4, ACC-001) → first card link.
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Tab");

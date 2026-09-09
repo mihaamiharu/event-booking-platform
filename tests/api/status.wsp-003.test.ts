@@ -1,7 +1,7 @@
 // Workspace status + expiry tests (WSP-003, WSP-001).
-import { execFileSync } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { runLocalWrangler } from "../../tools/local-runtime.mjs";
 import { baseUrl, headers, provision, resetRateCounters, startWorker } from "./support/harness.ts";
 
 const PORT = Number(process.env.EBP_API_PORT ?? 8793);
@@ -22,10 +22,9 @@ function ageWorkspace(cookie: string, daysAgo: number): void {
   }
   const wid = Buffer.from(cookie.split(".")[0]!, "base64url").toString("utf8");
   const at = new Date(Date.now() - daysAgo * 86_400_000).toISOString();
-  execFileSync(
-    "npx",
-    ["wrangler", "d1", "execute", "DB", "--local", "--command", `UPDATE workspaces SET last_active_at = '${at}' WHERE id = '${wid}'`, "--config", "worker/wrangler.jsonc"],
-    { cwd: new URL("../..", import.meta.url).pathname, stdio: "ignore" },
+  runLocalWrangler(
+    ["d1", "execute", "DB", "--command", `UPDATE workspaces SET last_active_at = '${at}' WHERE id = '${wid}'`],
+    { stdio: "ignore" },
   );
 }
 

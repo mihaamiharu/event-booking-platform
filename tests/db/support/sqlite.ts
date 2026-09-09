@@ -8,6 +8,26 @@ function isTxnMarker(sql: string): boolean {
   return keyword === "BEGIN" || keyword === "COMMIT";
 }
 
+/**
+ * D1 accepts numbered positional placeholders such as ?1 and ?2. Node's
+ * sqlite binding expects anonymous positional placeholders when values are
+ * passed as arguments, so expand the numbered references while preserving
+ * repeated references to the same input value.
+ */
+function sqliteParams(sql: string, params: SQLInputValue[]): { sql: string; params: SQLInputValue[] } {
+  if (!/\?\d+/.test(sql)) return { sql, params };
+  const bound: SQLInputValue[] = [];
+  const normalized = sql.replace(/\?(\d+)/g, (_match, number: string) => {
+    const index = Number(number) - 1;
+    if (!Number.isInteger(index) || index < 0 || index >= params.length) {
+      throw new Error(`invalid numbered SQLite placeholder: ?${number}`);
+    }
+    bound.push(params[index]!);
+    return "?";
+  });
+  return { sql: normalized, params: bound };
+}
+
 export class SqliteBatchDB implements BatchDB {
   protected db: DatabaseSync;
 
@@ -30,8 +50,9 @@ export class SqliteBatchDB implements BatchDB {
       for (const s of statements) {
         if (isTxnMarker(s.sql)) continue;
         this.onStatement(index++);
-        const stmt = this.db.prepare(s.sql);
-        const info = stmt.run(...(s.params as SQLInputValue[]));
+        const prepared = sqliteParams(s.sql, s.params as SQLInputValue[]);
+        const stmt = this.db.prepare(prepared.sql);
+        const info = stmt.run(...prepared.params);
         results.push({ changes: Number(info.changes) });
       }
       this.db.exec("COMMIT");

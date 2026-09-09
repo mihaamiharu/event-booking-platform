@@ -174,14 +174,14 @@ describe("wsp-002 POST /api/workspaces/reset", () => {
     assert.equal(((await limited.json()) as { error: { code: string } }).error.code, "WORKSPACE_RATE_LIMITED");
     assert.ok(Number(limited.headers.get("retry-after")) > 0);
 
-    // Same collapsed-local IP, fresh workspace WITHOUT wiping (setup would
-    // reset the shared IP bucket): 10 more fit (IP count 20 → 30)…
+    // Deliberately reuse the same forwarded IP for a fresh workspace WITHOUT
+    // wiping: 10 more fit (IP count 20 → 30) regardless of local runtime.
     const wsB = await provision(BASE, `${ID}-rl-b`);
     for (let i = 0; i < 10; i++) {
-      const res = await reset(wsB, `${ID}-rl-b`, { confirm: true });
+      const res = await reset(wsB, `${ID}-rl-a`, { confirm: true });
       assert.equal(res.status, 200, `ip reset ${i}`);
     }
-    const ipLimited = await reset(wsB, `${ID}-rl-b`, { confirm: true });
+    const ipLimited = await reset(wsB, `${ID}-rl-a`, { confirm: true });
     assert.equal(ipLimited.status, 429);
     assert.equal(((await ipLimited.json()) as { error: { code: string } }).error.code, "WORKSPACE_RATE_LIMITED");
     resetRateCounters(BASE);

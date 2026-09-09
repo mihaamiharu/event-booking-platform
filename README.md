@@ -2,7 +2,7 @@
 
 An open-source event-management and booking application built as a realistic system for learning software development and software testing workflows.
 
-> Status: R1 product discovery is complete and ready for owner review. Implementation has not started.
+> Status: R1 implementation is in progress; local development uses the Cloudflare Vite plugin.
 
 ## Purpose
 
@@ -43,6 +43,7 @@ See:
 - [Release 1 definition](docs/releases/RELEASE-001.md)
 - [R1 seed data](docs/testing/TEST-DATA.md)
 - [Technical design](docs/engineering/TDD.md)
+- [Local development](docs/engineering/LOCAL-DEVELOPMENT.md)
 - [Decision records](docs/adr/README.md)
 
 ## Working principles
@@ -55,4 +56,4 @@ See:
 
 ## Repository status
 
-No application code exists yet. R1 product discovery is ready for review. The next milestone after approval is the API, data, and engineering design package.
+R1 product discovery and engineering design are complete for the current slice. The React SPA, Worker API, local D1 migrations, API tests, and Playwright journeys are implemented and verified locally. See [Local development](docs/engineering/LOCAL-DEVELOPMENT.md) for the supported workflow.

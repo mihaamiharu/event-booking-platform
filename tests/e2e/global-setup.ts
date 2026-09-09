@@ -11,6 +11,9 @@ async function globalSetup(config: FullConfig): Promise<void> {
   if (typeof baseURL !== "string" || typeof storageState !== "string") {
     throw new Error("baseURL and storageState must be configured");
   }
+  // serve:e2e clears local rate counters before starting Vite preview. Do not
+  // issue a second-process SQLite reset while the live Worker owns the DB.
+  process.env.EBP_VITE_RUNTIME = "1";
   const browser = await chromium.launch();
   // Fresh rate bucket even when reusing a stale local dev server.
   resetRateCounters(baseURL);

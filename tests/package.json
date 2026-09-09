@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "R1 test suites: node:test unit/API layers, Playwright E2E (S0 skeleton).",
+  "description": "R1 test suites: node:test unit/API layers and Playwright E2E.",
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "install:browsers": "playwright install chromium",
+    "install:browsers:with-deps": "playwright install --with-deps chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

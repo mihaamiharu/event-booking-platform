@@ -32,6 +32,11 @@ jobs:
       - run: npm run build --workspace=client
       - run: npm run setup:local
       - run: npm run test:api
+      - name: Remove unrelated Google Chrome APT source
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.sources
       - if: runner.os == 'Linux'
         run: npm run install:browsers:with-deps --workspace=tests
       - if: runner.os != 'Linux'

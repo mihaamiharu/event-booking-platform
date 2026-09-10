@@ -2,8 +2,8 @@
 
 **Status:** Ready for review
 **Version:** 0.2
-**Scope:** Issue #10 — user experience before application implementation
-**Sources:** INFORMATION-ARCHITECTURE, USER-FLOWS (UF-001…006), PERSONAS (Alya), ERROR-CATALOG, API-CONTRACT, NFR-002/003/009
+**Scope:** Issues #10 and #66 — user experience before application implementation
+**Sources:** INFORMATION-ARCHITECTURE, USER-FLOWS (UF-001…007), PERSONAS (Alya), ERROR-CATALOG, API-CONTRACT, NFR-002/003/009/010
 **Non-goals:** Framework/router choice (TDD §11), visual brand (PD-001 deferred), copy finalization beyond contract examples.
 
 ## 1. Design tokens (framework-agnostic)
@@ -111,13 +111,13 @@ Failure keeps the email, moves focus to the `role="alert"` error summary linked 
 
 Total recomputes client-side for display but the server total rules (stale-price note in help text). Submit button disables during flight; idempotency key generated per attempt (UUID, stored in memory, regenerated after decline/conflict so retry = new attempt). Decline → `PAYMENT_DECLINED` panel preserving selection + "Try again" (new key). Conflict → `CAPACITY_INSUFFICIENT`/`IDEMPOTENCY_CONFLICT` with current remaining capacity + reselect action.
 
-### 3.5 `/bookings/:ref` confirmation/detail (BKG-004, UF-006)
+### 3.5 `/bookings/:ref` confirmation/detail (BKG-004, BKG-006/007, UF-006/007)
 
-Definition list: reference (copy button), event, session WIB range, ticket, quantity, unit price, total, payment status, booking status. Serves immediate confirmation (success banner on first view after checkout) and durable detail (banner absent on later visits — distinguished by navigation state, not by refetching checkout).
+Definition list: reference (copy button), event, session WIB range, ticket, quantity, unit price, total, payment status, booking status. Serves immediate confirmation (success banner on first view after checkout) and durable detail (banner absent on later visits — distinguished by navigation state, not by refetching checkout). Confirmed records expose a cancellation action; the action opens an inline `role="alertdialog"` confirmation with **Keep booking** and **Confirm cancellation**, moves focus to the destructive choice, disables both controls during submission, then shows a status or retry panel. Cancelled records keep their history and replace the action with an explanatory note.
 
-### 3.6 `/bookings` list (BKG-005, UF-006)
+### 3.6 `/bookings` list (BKG-005/007, UF-006/007)
 
-Newest-first cards: reference, event name, session date (WIB), quantity, total IDR, status; empty state ("No bookings yet." + browse link); foreign/missing → `BOOKING_NOT_FOUND`. Booking detail has a confirmation panel on first arrival and a durable detail surface on later visits.
+Newest-first cards: reference, event name, session date (WIB), quantity, total IDR, status; cancelled records remain visible; empty state ("No bookings yet." + browse link); foreign/missing → `BOOKING_NOT_FOUND`. Booking detail has a confirmation panel on first arrival and a durable detail surface on later visits.
 
 ### 3.7 `/demo` workspace controls (WSP-002…004, UF-001)
 
@@ -133,6 +133,7 @@ Status card (seed version, provisioned date, expiry date, days remaining), isola
 | Authorization | checkout, bookings, reset | sign-in prompt preserving destination | `AUTH_REQUIRED`, `AUTH_INVALID_CREDENTIALS`, `AUTH_RATE_LIMITED` |
 | Not found | event detail, booking detail | identical missing/foreign state | `EVENT_NOT_FOUND`, `BOOKING_NOT_FOUND` |
 | Capacity conflict | checkout | remaining-capacity panel + reselect | `SESSION_NOT_BOOKABLE`, `CAPACITY_INSUFFICIENT`, `IDEMPOTENCY_CONFLICT` |
+| Cancellation lifecycle | booking detail/list | confirmation dialog, disabled pending action, status/retry panel | `BOOKING_ALREADY_CANCELLED`, `BOOKING_CANCELLATION_CLOSED`, `BOOKING_CANCELLATION_CONFLICT` |
 | Payment decline | checkout | decline panel, selection preserved | `PAYMENT_DECLINED` (422) |
 | Workspace expiration | all | banner + new-workspace action | `WORKSPACE_EXPIRED` (410) |
 | Reset failure | demo | failure panel, state explicitly unknown | `WORKSPACE_RESET_FAILED` |

@@ -10,7 +10,7 @@ Define the standalone product, Cloudflare free-plan constraint, documentation wo
 
 ## R1 — Attendee booking
 
-Deliver isolated workspaces, seeded sign-in, event discovery, ticket selection, deterministic payment success/decline, booking confirmation, and booking history.
+Deliver isolated workspaces, seeded sign-in, event discovery, ticket selection, deterministic payment success/decline, booking confirmation, booking history, and attendee cancellation before a session starts.
 
 ## R2 — Organizer lifecycle
 
@@ -26,7 +26,7 @@ Potential testing themes:
 
 ## R3 — Event operations
 
-Introduce attendee cancellation, check-in staff, duplicate check-in prevention, attendance reporting, promo codes, and deterministic notification records.
+Introduce rescheduling, check-in staff, duplicate check-in prevention, attendance reporting, promo codes, and deterministic notification records.
 
 Potential testing themes:
 

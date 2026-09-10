@@ -4,8 +4,9 @@ import { ApiError, api, errorReference, getAttendee } from "../lib/api.ts";
 import { formatIdr, formatWibDate } from "../lib/format.ts";
 import { StatusBadge } from "../components/StatusBadge.tsx";
 
-// Booking list (BKG-005, UF-006; UI-DESIGN §3.6). Newest first; explicit empty
-// state; sign-in prompt when anonymous.
+// Booking list and lifecycle history (BKG-005/007, UF-006/007; UI-DESIGN §3.6).
+// Newest first; cancelled records stay visible so learners can test state
+// transitions and revisit behavior.
 interface BookingItem {
   reference: string;
   eventName: string;
@@ -58,7 +59,7 @@ export function Bookings() {
       <div className="page-heading compact-heading">
         <p className="eyebrow">Your attendee record</p>
         <h1>My bookings</h1>
-        <p className="lede">Your confirmed places, ready whenever you need the details.</p>
+        <p className="lede">Your reservations and booking history, ready whenever you need the details.</p>
       </div>
       {state.kind === "loading" && (
         <div className="skeleton-grid" aria-busy="true">
@@ -77,9 +78,9 @@ export function Bookings() {
       )}
       {state.kind === "empty" && (
         <div className="state-card empty">
-          <p className="eyebrow">No reservations yet</p>
+          <p className="eyebrow">No booking history yet</p>
           <h2>No bookings yet.</h2>
-          <p>When you reserve a place, the confirmation will stay here.</p>
+          <p>When you reserve a place, the confirmation and any later status will stay here.</p>
           <Link className="button button-primary" to="/events">
             Browse events
           </Link>
@@ -96,11 +97,11 @@ export function Bookings() {
         </div>
       )}
       {state.kind === "ready" && (
-        <section className="content-section" aria-labelledby="confirmed-bookings-heading">
+        <section className="content-section" aria-labelledby="bookings-heading">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Confirmed reservations</p>
-              <h2 id="confirmed-bookings-heading">Your places</h2>
+              <p className="eyebrow">Reservation history</p>
+              <h2 id="bookings-heading">Your bookings</h2>
             </div>
             <span className="muted">Newest first</span>
           </div>
@@ -110,7 +111,7 @@ export function Bookings() {
                 <article className="card booking-card" aria-labelledby={`booking-${booking.reference}`}>
                   <div className="card-topline">
                     <span className="eyebrow">Booking reference</span>
-                    <StatusBadge tone={booking.bookingStatus === "CONFIRMED" ? "confirmed" : "neutral"}>
+                    <StatusBadge tone={booking.bookingStatus === "CONFIRMED" ? "confirmed" : "cancelled"}>
                       {booking.bookingStatus}
                     </StatusBadge>
                   </div>

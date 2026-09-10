@@ -55,6 +55,7 @@ export function SignIn() {
             <li><code>alex.attendee@example.test</code></li>
             <li><code>maya.attendee@example.test</code></li>
           </ul>
+          <p className="form-note">Use the documented seeded password from the QA test-data guide.</p>
         </aside>
         {existing && (
           <p className="notice">

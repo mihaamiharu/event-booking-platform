@@ -4,6 +4,7 @@ export type StatusTone =
   | "bookable"
   | "unavailable"
   | "confirmed"
+  | "cancelled"
   | "paid"
   | "neutral";
 

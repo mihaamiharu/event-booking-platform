@@ -499,7 +499,8 @@ h2 {
 }
 
 .status-sold-out,
-.status-unavailable {
+.status-unavailable,
+.status-cancelled {
   color: var(--danger);
   background: var(--danger-soft);
   border-color: #f4c8c3;
@@ -759,6 +760,7 @@ h2 {
 .form-note {
   color: var(--muted);
   font-size: 0.83rem;
+  overflow-wrap: anywhere;
 }
 
 .fine-print {
@@ -772,6 +774,10 @@ h2 {
   align-items: center;
   gap: var(--space-8);
   min-height: 520px;
+}
+
+.auth-layout > * {
+  min-width: 0;
 }
 
 .auth-intro {
@@ -966,6 +972,52 @@ form > .button,
 .booking-card > .button {
   align-self: flex-start;
   margin-top: var(--space-2);
+}
+
+.booking-actions {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.booking-actions .button {
+  justify-self: start;
+}
+
+.cancel-confirmation {
+  max-width: 880px;
+  margin-bottom: var(--space-5);
+  padding: var(--space-5);
+  color: var(--ink);
+  background: #fff9eb;
+  border: 1px solid #f2d18a;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cancel-confirmation h2 {
+  margin-bottom: var(--space-2);
+}
+
+.cancel-confirmation p:last-of-type {
+  margin-bottom: var(--space-4);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.booking-action-message {
+  max-width: 880px;
+  margin-bottom: var(--space-5);
+}
+
+.booking-action-message p:last-child {
+  margin-bottom: 0;
 }
 
 .confirmation-panel {

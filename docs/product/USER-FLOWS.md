@@ -110,3 +110,25 @@ Alternate outcomes:
 - A missing or foreign booking returns the same stable not-found outcome.
 
 Requirements: `BKG-004`, `BKG-005`
+
+## UF-007 — Cancel a booking before the session
+
+**Actor:** Authenticated attendee
+**Outcome:** The attendee's confirmed booking becomes cancelled and its places return to shared session capacity.
+
+1. The attendee opens a booking from the booking list or confirmation detail.
+2. The platform shows the current booking status and an accessible cancellation action while the session is still in the future.
+3. The attendee chooses **Cancel booking** and reviews the explicit confirmation step.
+4. The server authorizes the booking by active workspace and attendee, then rechecks the session start time.
+5. The platform atomically records `CANCELLED` with a cancellation timestamp and releases the booked quantity once.
+6. The attendee sees a cancellation confirmation; the durable detail and booking list retain the cancelled record.
+
+Alternate outcomes:
+
+- Keeping the booking closes the confirmation step without changing state.
+- A duplicate cancellation returns an already-cancelled result and leaves capacity unchanged.
+- A session that has started returns a stable cancellation-closed error and leaves state unchanged.
+- A missing or foreign reference returns the same safe not-found outcome.
+- A transient failure leaves a retry/refresh path and does not expose raw storage details.
+
+Requirements: `BKG-006`, `BKG-007`, `NFR-010`

@@ -52,7 +52,7 @@ An event approved for public discovery. Publication alone does not guarantee tha
 
 ## Remaining capacity
 
-Session capacity minus the quantity held by confirmed bookings in the same workspace. R1 has no temporary reservation or payment-pending hold.
+Session capacity minus the quantity held by confirmed bookings in the same workspace. Cancelled bookings release their quantity. R1 has no temporary reservation or payment-pending hold.
 
 ## Seed data
 

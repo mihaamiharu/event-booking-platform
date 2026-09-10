@@ -28,6 +28,9 @@ The HTTP category is a discovery expectation; the API design must either adopt i
 | `IDEMPOTENCY_KEY_REQUIRED` | 400 | Checkout omitted its retry identity | Retry through a valid checkout submission |
 | `IDEMPOTENCY_CONFLICT` | 409 | The key was reused with different checkout input | Start a new checkout attempt |
 | `BOOKING_NOT_FOUND` | 404 | Booking is missing or not owned by the active attendee/workspace | Show one non-enumerating not-found state |
+| `BOOKING_ALREADY_CANCELLED` | 409 | The attendee's booking was already cancelled | Explain that capacity was not released again and refresh the record |
+| `BOOKING_CANCELLATION_CLOSED` | 409 | The booking cannot be cancelled after the session starts or from a closed state | Keep the booking visible and explain the lifecycle boundary |
+| `BOOKING_CANCELLATION_CONFLICT` | 409 | Booking state changed while cancellation was being attempted | Refresh the booking and allow a safe retry |
 | `SERVICE_UNAVAILABLE` | 503 | Quota, CPU, overload, or downstream retry-later condition | Show retry guidance with `Retry-After` where provided |
 | `STORAGE_FULL` | 503 | Database storage cap reached; reads are unaffected | Explain temporary write pause and retry later |
 | `UNEXPECTED_ERROR` | 500 | The platform cannot provide a more specific safe outcome | Show a correlation reference and retry guidance |

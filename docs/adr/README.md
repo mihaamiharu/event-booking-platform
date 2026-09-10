@@ -33,3 +33,4 @@ Architecture Decision Records explain material choices that affect product scope
 | [0010](ADR-0010-browser-matrix-and-observability.md) | Restore the browser matrix and keep observability provider-neutral | Accepted |
 | [0011](ADR-0011-qa-observability-cockpit.md) | Use a safe QA request-and-trace observability cockpit | Accepted |
 | [0012](ADR-0012-booking-lifecycle-cancellation.md) | Preserve attendee booking history through cancellation | Proposed |
+| [0013](ADR-0013-organizer-event-configuration.md) | Use workspace-scoped organizer role and atomic nested event configuration | Proposed |

@@ -1,10 +1,10 @@
 # R1 Data Design — ERD and Lifecycle
 
 **Status:** Ready for review
-**Version:** 0.1
-**Scope:** Issues #6 and #66 — R1 ERD and data lifecycle for Cloudflare D1
+**Version:** 0.2
+**Scope:** Issues #6, #66, and #69 — attendee and organizer ERD/lifecycle for Cloudflare D1
 **Sources:** PRD, BUSINESS-RULES, TEST-DATA (`r1-v1`), TDD, CLOUDFLARE-USAGE-MODEL
-**Budgets:** Every query pattern below must fit §3 of the usage model (≤ 8 D1 queries per endpoint, indexed `(workspace_id, …)` access, checkout in one batch).
+**Budgets:** R1 query patterns below fit §3 of the usage model (≤ 8 D1 queries per endpoint, indexed `(workspace_id, …)` access, checkout in one batch). The R2 organizer dashboard uses bounded workspace reads, while organizer saves use preflight reads plus one bounded batch.
 
 ## 1. Scope decision: workspace-scoped copies, one production database
 
@@ -39,11 +39,11 @@ workspaces 1───* users 1───* sessions
 | Table | Key | Workspace scope | Purpose / requirement |
 | --- | --- | --- | --- |
 | `workspaces` | `id` TEXT PK | Self (`id`) | Seed version, `seed_reference_at` (T0), `last_active_at`, `status` (`ACTIVE`/`EXPIRED`); WSP-001…004 |
-| `users` | `id` TEXT PK; UNIQUE `(workspace_id, email)` | `workspace_id` FK → workspaces, explicit ordered deletes (cascades unsafe until FK enforcement is proven per-connection) | Seeded attendees + non-interactive fixture owner; `seed_key` NULL for user-created (none in R1); `password_hash`; ACC-001, BR-ACC-001 |
+| `users` | `id` TEXT PK; UNIQUE `(workspace_id, email)` | `workspace_id` FK → workspaces, explicit ordered deletes (cascades unsafe until FK enforcement is proven per-connection) | Seeded attendees + organizer + non-interactive fixture owner; `role` ATTENDEE/ORGANIZER; `password_hash`; ACC-001, ORG-001 |
 | `sessions` | `token_hash` TEXT PK (store hash, never raw token) | `workspace_id` + `user_id` FKs | HTTP-only session; `expires_at`, `revoked_at`; ACC-001 |
 | `venues` | `id` TEXT PK | `workspace_id`; `seed_key` | Fictional Jakarta venues; `time_zone` always `Asia/Jakarta`; BR-TIM-001 |
 | `events` | `id` TEXT PK; UNIQUE `(workspace_id, slug)` | `workspace_id`, `venue_id` FK | `status` DRAFT/PUBLISHED/CANCELLED; `sales_open_at`, `sales_close_at`; EVT-001/002, BR-EVT-001/004 |
-| `event_sessions` | `id` TEXT PK | `workspace_id`, `event_id` FK | `status` SCHEDULED/CANCELLED/COMPLETED; `start_at`, `end_at`; `capacity`; `confirmed_quantity` counter (default 0); BR-EVT-002/003/005 |
+| `event_sessions` | `id` TEXT PK | `workspace_id`, `event_id` FK | `status` SCHEDULED/CANCELLED/COMPLETED; `start_at`, `end_at`; positive room `capacity`; `confirmed_quantity` counter (default 0); ORG-002, BR-ORG-003 |
 | `ticket_types` | `id` TEXT PK | `workspace_id`, `event_id`, `event_session_id` FKs | `name`, `price_idr` INTEGER ≥ 0; capacity shared at session level, never per ticket type; BKG-001, BR-TKT-001/002 |
 | `bookings` | `id` TEXT PK; UNIQUE `(workspace_id, reference)` | `workspace_id`, `user_id`, `event_id`, `event_session_id` FKs | `reference` human-readable unique; `status` `CONFIRMED` or `CANCELLED`; `quantity`, `total_idr`; `created_at`; nullable `cancelled_at` and internal `cancellation_id`; BKG-003/004/005/006/007, BR-BKG-006/008 |
 | `booking_items` | `id` TEXT PK; UNIQUE `(booking_id)` (one ticket type per checkout) | `workspace_id`, `booking_id`, `ticket_type_id` FKs | `quantity` 1–5, `unit_price_idr` **snapshot** copied at checkout, `subtotal_idr`; BR-TKT-003 |
@@ -66,6 +66,7 @@ workspaces 1───* users 1───* sessions
 - **Price authority:** `unit_price_idr`/`total_idr` are computed server-side from `ticket_types.price_idr × quantity`; client totals are ignored; later price changes cannot alter `booking_items` snapshots (BR-TKT-002/003).
 - **Time authority:** sales-window and future-session checks use server `now` against UTC instants; `sales_open_at <= now < sales_close_at AND now < start_at` (BR-TIM-002/003).
 - **No card data:** no column exists for card numbers, CVCs, or expiries; adding one later requires a new ADR plus migration review (R-006).
+- **Organizer nested writes:** `POST/PUT /api/organizer/events*` validates all parent/child references before sending one bounded D1 batch. Draft status is private; publication is only written after the venue, session, capacity, time, and ticket gates pass. Existing booking history blocks destructive child removal and capacity reductions below confirmed quantity (BR-ORG-002…005).
 
 ## 4. Indexes (every filter column indexed; billed rows = rows scanned)
 
@@ -82,7 +83,7 @@ workspaces 1───* users 1───* sessions
 
 ### 5.1 Provision (WSP-004)
 
-One batched write set (≤ 10 statements, ≤ 45 rows): insert `workspaces` row (`seed_version = 'r1-v1'`, fresh `seed_reference_at = T0`, `last_active_at = now`, `ACTIVE`), 2 venues, 5 events, sessions, ticket types, 2 interactive users (hashed passwords) + 1 fixture identity, 2 seeded bookings + items + SUCCEEDED attempts, and set `event_sessions.confirmed_quantity` to seeded values (2 and 5). All-or-nothing: failure returns explicit retry-later, never a half-seeded workspace.
+One batched write set (≤ 10 statements, ≤ 50 rows): insert `workspaces` row (`seed_version = 'r1-v1'`, fresh `seed_reference_at = T0`, `last_active_at = now`, `ACTIVE`), 2 venues, 5 events, sessions, ticket types, 3 interactive users including one organizer (hashed passwords) + 1 fixture identity, 2 seeded bookings + items + SUCCEEDED attempts, and set `event_sessions.confirmed_quantity` to seeded values (2 and 5). All-or-nothing: failure returns explicit retry-later, never a half-seeded workspace.
 
 ### 5.2 Reset (WSP-002)
 
@@ -104,11 +105,11 @@ These are **not yet proven** — the R1 release gate forbids overbooking under s
 
 ## 7. Migrations and deterministic seed
 
-- Numbered forward-only SQL migrations via Wrangler D1 (`0001_init.sql`, `0002_rate_limits.sql`, `0003_booking_cancellation.sql`, …); schema changes never edit applied migrations. Seed data is **not** in migrations — it runs through the provision/reset path (§5.1) so local, preview, and production derive identical logical state from T0 + `Asia/Jakarta` offsets (NFR-007, R-003).
+- Numbered forward-only SQL migrations via Wrangler D1 (`0001_init.sql`, `0002_rate_limits.sql`, `0003_booking_cancellation.sql`, `0004_organizer_management.sql`, …); schema changes never edit applied migrations. Seed data is **not** in migrations — it runs through the provision/reset path (§5.1) so local, preview, and production derive identical logical state from T0 + `Asia/Jakarta` offsets (NFR-007, R-003).
 - Migration acceptance per environment: apply to clean local and preview databases, run reset-invariant checks (TEST-DATA reset invariants), then promote. Destructive migrations require a new ADR.
 - `seed_version` stored per workspace; a future `r1-v2` seed is a code + migration change, never an in-place edit of seed meaning.
 
 ## 8. Budget fit and handoff
 
-- Catalog (1–2 queries/≤ 30 reads), detail (2–3/≤ 50), checkout (≤ 8/one batch/≤ 30 reads/≤ 8 writes), list/detail reads, cancellation (≤ 3 reads/one batch/≤ 10 writes), provision (≤ 10/≤ 45 writes), reset (≤ 12/≤ 60 writes), cleanup (≤ 20/≤ 500) — all inside usage-model §3 and the 50-query invocation cap.
+- Catalog (1–2 queries/≤ 30 reads), detail (2–3/≤ 50), checkout (≤ 8/one batch/≤ 30 reads/≤ 8 writes), list/detail reads, cancellation (≤ 3 reads/one batch/≤ 10 writes), organizer dashboard (≤ 50 bounded reads), organizer save (preflight reads + one bounded batch), provision (≤ 10/≤ 50 writes), reset (≤ 12/≤ 70 writes), cleanup (≤ 20/≤ 500) — all inside usage-model §3 and the 50-query invocation cap.
 - Issues #7/#8 now own: exact routes/schemas/error codes, canonical fingerprint fields, session cookie/hash choice with the 10 ms CPU benchmark, secret rotation, and final rate-limit values.

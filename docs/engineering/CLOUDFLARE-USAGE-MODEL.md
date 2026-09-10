@@ -62,7 +62,7 @@ One production D1 database (not per-workspace databases): the Free plan allows o
 
 ## 3. Per-operation budgets (estimates; validated in #6/#7/#11)
 
-Assumes indexed access on `(workspace_id, …)` and the R1 seed (`r1-v1`: 2 venues, 5 events, ≤3 sessions, ≤4 ticket types, 2 interactive accounts + 1 fixture identity, 2 seeded bookings). Row counts are billed rows scanned/written, so every filter column must be indexed.
+Assumes indexed access on `(workspace_id, …)` and the seed (`r1-v1`: 2 venues, 5 events, ≤3 sessions, ≤4 ticket types, 3 interactive accounts including one organizer + 1 fixture identity, 2 seeded bookings). Row counts are billed rows scanned/written, so every filter column must be indexed.
 
 | Operation | Worker reqs | D1 queries | Rows read | Rows written | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -98,8 +98,8 @@ bounds, which remain far inside the reference-day math (25k requests,
 | Checkout | ≤ 30 R / ≤ 8 W | ≤ 30 R / ≤ 30 W | Write bound covers gate + 4 inserts + touch + session slide incl. index rows |
 | Booking list | ≤ 20 R / 0 W | ≤ 15 R / ≤ 15 W | Reads include one session slide + activity touch (DATA-DESIGN §5.3) |
 | Booking detail | ≤ 10 R / 0 W | ≤ 15 R / ≤ 15 W | Same slide + touch note |
-| Provision | ≤ 45 W | ≤ 120 W | Seed meters ~114 locally (index maintenance); S3-calibrated ceiling |
-| Reset | ≤ 60 W | ≤ 150 W | Deletes + reseed + index rows; local ceiling |
+| Provision | ≤ 50 W | ≤ 150 W | Seed meters ~127 locally with organizer role/index maintenance; S3-calibrated ceiling |
+| Reset | ≤ 70 W | ≤ 180 W | Deletes + reseed + organizer role/index rows; local ceiling |
 | Cleanup tick | ≤ 500 R/W | bounded batch of 5 workspaces/tick | Backlog drains over ticks by design |
 
 ## 4. Scheduled expiration cleanup

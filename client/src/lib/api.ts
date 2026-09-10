@@ -77,10 +77,12 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
 export interface Attendee {
   email: string;
   displayName: string;
+  role?: "ATTENDEE" | "ORGANIZER";
 }
 
 export interface SessionResponse {
   attendee: Attendee;
+  role: "ATTENDEE" | "ORGANIZER";
 }
 
 const ATTENDEE_KEY = "ebp.attendee";
@@ -99,6 +101,7 @@ export function getAttendee(): Attendee | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Attendee;
     if (typeof parsed.email !== "string" || typeof parsed.displayName !== "string") return null;
+    if (parsed.role !== undefined && parsed.role !== "ATTENDEE" && parsed.role !== "ORGANIZER") return null;
     return parsed;
   } catch {
     return null;
@@ -120,8 +123,9 @@ export async function signIn(email: string, password: string): Promise<Attendee>
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  setAttendee(res.attendee);
-  return res.attendee;
+  const identity = { ...res.attendee, role: res.role };
+  setAttendee(identity);
+  return identity;
 }
 
 // DELETE /api/session: always 204 (no oracle); clears local state too.

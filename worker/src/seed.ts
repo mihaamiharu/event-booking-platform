@@ -64,7 +64,7 @@ export function workspaceTag(workspaceId: string): string {
   return workspaceId.replace(/-/g, "").slice(0, 8);
 }
 
-function seedStatements(ctx: SeedContext, creds: { alex: { salt: string; hash: string }; maya: { salt: string; hash: string }; fixture: { salt: string; hash: string } }): Statement[] {
+function seedStatements(ctx: SeedContext, creds: { alex: { salt: string; hash: string }; maya: { salt: string; hash: string }; organizer: { salt: string; hash: string }; fixture: { salt: string; hash: string } }): Statement[] {
   const { w, t0 } = ctx;
   const tag = workspaceTag(w);
   const sid = (key: string): string => `${tag}_${key}`;
@@ -85,10 +85,12 @@ function seedStatements(ctx: SeedContext, creds: { alex: { salt: string; hash: s
   run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_merdeka', 'Merdeka Community Hall', 'Jakarta', 'Asia/Jakarta')", sid("venue_merdeka"), w);
   run("INSERT INTO venues (id, workspace_id, seed_key, name, city, time_zone) VALUES (?1, ?2, 'venue_cendana', 'Cendana Creative Studio', 'Jakarta', 'Asia/Jakarta')", sid("venue_cendana"), w);
 
-  // Users: two interactive + one non-interactive fixture (no credential).
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'alex.attendee@example.test', 'Alex', ?3, ?4, 'attendee_alex')", sid("user_alex"), w, creds.alex.hash, creds.alex.salt);
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'maya.attendee@example.test', 'Maya', ?3, ?4, 'attendee_maya')", sid("user_maya"), w, creds.maya.hash, creds.maya.salt);
-  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key) VALUES (?1, ?2, 'fixture.soldout@example.test', 'Fixture', ?3, ?4, NULL)", sid("user_fixture_soldout"), w, creds.fixture.hash, creds.fixture.salt);
+  // Users: two interactive attendees, one organizer, and one non-interactive
+  // fixture (no credential). Raka owns the workspace management surface.
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key, role) VALUES (?1, ?2, 'alex.attendee@example.test', 'Alex', ?3, ?4, 'attendee_alex', 'ATTENDEE')", sid("user_alex"), w, creds.alex.hash, creds.alex.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key, role) VALUES (?1, ?2, 'maya.attendee@example.test', 'Maya', ?3, ?4, 'attendee_maya', 'ATTENDEE')", sid("user_maya"), w, creds.maya.hash, creds.maya.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key, role) VALUES (?1, ?2, 'raka.organizer@example.test', 'Raka', ?3, ?4, 'organizer_raka', 'ORGANIZER')", sid("user_raka"), w, creds.organizer.hash, creds.organizer.salt);
+  run("INSERT INTO users (id, workspace_id, email, display_name, password_hash, password_salt, seed_key, role) VALUES (?1, ?2, 'fixture.soldout@example.test', 'Fixture', ?3, ?4, NULL, 'ATTENDEE')", sid("user_fixture_soldout"), w, creds.fixture.hash, creds.fixture.salt);
 
   // Available published event: T0+14d 09:00–12:00 WIB, sales T0-1d → T0+13d 23:59.
   const d14 = jakartaMidnightUtc(t0ms, 14);
@@ -138,10 +140,11 @@ export async function provisionWorkspace(
 ): Promise<ProvisionResult> {
   const t0 = (opts.now ?? new Date()).toISOString();
   const w = crypto.randomUUID();
-  const [alexSalt, mayaSalt, fixtureSalt] = [randomSaltB64(), randomSaltB64(), randomSaltB64()];
-  const [alexHash, mayaHash, fixtureHash] = await Promise.all([
+  const [alexSalt, mayaSalt, organizerSalt, fixtureSalt] = [randomSaltB64(), randomSaltB64(), randomSaltB64(), randomSaltB64()];
+  const [alexHash, mayaHash, organizerHash, fixtureHash] = await Promise.all([
     hashPassword("Attend123!", alexSalt),
     hashPassword("Booked123!", mayaSalt),
+    hashPassword("Organize123!", organizerSalt),
     hashPassword(crypto.randomUUID(), fixtureSalt),
   ]);
   const stmts: Statement[] = [{ sql: "BEGIN", params: [] }];
@@ -149,6 +152,7 @@ export async function provisionWorkspace(
     ...seedStatements({ w, t0 }, {
       alex: { salt: alexSalt, hash: alexHash },
       maya: { salt: mayaSalt, hash: mayaHash },
+      organizer: { salt: organizerSalt, hash: organizerHash },
       fixture: { salt: fixtureSalt, hash: fixtureHash },
     }),
   );
@@ -182,16 +186,18 @@ export async function resetWorkspace(
   opts: ProvisionOptions = {},
 ): Promise<ProvisionResult> {
   const t0 = (opts.now ?? new Date()).toISOString();
-  const [alexSalt, mayaSalt, fixtureSalt] = [randomSaltB64(), randomSaltB64(), randomSaltB64()];
-  const [alexHash, mayaHash, fixtureHash] = await Promise.all([
+  const [alexSalt, mayaSalt, organizerSalt, fixtureSalt] = [randomSaltB64(), randomSaltB64(), randomSaltB64(), randomSaltB64()];
+  const [alexHash, mayaHash, organizerHash, fixtureHash] = await Promise.all([
     hashPassword("Attend123!", alexSalt),
     hashPassword("Booked123!", mayaSalt),
+    hashPassword("Organize123!", organizerSalt),
     hashPassword(crypto.randomUUID(), fixtureSalt),
   ]);
   // Re-seed content rows (deterministic IDs) without touching the workspace row.
   const reseed = seedStatements({ w: workspaceId, t0 }, {
     alex: { salt: alexSalt, hash: alexHash },
     maya: { salt: mayaSalt, hash: mayaHash },
+    organizer: { salt: organizerSalt, hash: organizerHash },
     fixture: { salt: fixtureSalt, hash: fixtureHash },
   }).filter((s) => !s.sql.startsWith("INSERT INTO workspaces"));
   const stmts: Statement[] = [{ sql: "BEGIN", params: [] }];

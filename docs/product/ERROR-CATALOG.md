@@ -34,6 +34,23 @@ The HTTP category is a discovery expectation; the API design must either adopt i
 | `SERVICE_UNAVAILABLE` | 503 | Quota, CPU, overload, or downstream retry-later condition | Show retry guidance with `Retry-After` where provided |
 | `STORAGE_FULL` | 503 | Database storage cap reached; reads are unaffected | Explain temporary write pause and retry later |
 | `UNEXPECTED_ERROR` | 500 | The platform cannot provide a more specific safe outcome | Show a correlation reference and retry guidance |
+| `ORGANIZER_FORBIDDEN` | 403 | The signed-in user is not an organizer | Explain that organizer access is required |
+| `EVENT_NAME_INVALID` | 400 | Event name is missing or too long | Enter a concise event name |
+| `EVENT_DESCRIPTION_INVALID` | 400 | Event description is too long | Shorten the description |
+| `VENUE_REQUIRED` | 400 | Event configuration omitted a room/venue | Ask the organizer to choose a workspace venue |
+| `VENUE_INVALID` | 400 | Venue is missing or belongs to another workspace | Keep the form editable and choose a valid venue |
+| `SESSION_REQUIRED` | 400 | Event configuration has no session | Add a session before saving |
+| `SESSION_INVALID` | 400 | Session time or positive room capacity is invalid | Identify the session fields |
+| `SESSION_OVERLAP` | 409 | Sessions overlap | Adjust the session schedule |
+| `TICKET_REQUIRED` | 400 | Publication has no ticket types | Add at least one ticket before publishing |
+| `TICKET_LIST_INVALID` | 400 | Ticket list structure is invalid | Repair the ticket configuration |
+| `TICKET_INVALID` | 400 | Ticket name, price, session, or ownership is invalid | Correct the ticket fields |
+| `SALES_WINDOW_INVALID` | 400 | Sales opening/closing times are invalid | Enter an ordered sales window |
+| `PUBLICATION_INVALID` | 409 | Publication gate failed for a future session or sales window | Keep the draft and retry after correction |
+| `CAPACITY_INVALID` | 400 | Room capacity is below confirmed bookings or outside the allowed range | Increase the session capacity |
+| `CAPACITY_IN_USE` | 409 | A session with confirmed bookings cannot be removed or reduced | Preserve booked capacity |
+| `SESSION_IN_USE` | 409 | A session with booking history cannot be removed | Preserve booking history |
+| `TICKET_IN_USE` | 409 | A ticket with booking history cannot be removed | Preserve booking history |
 
 ## Error rules
 

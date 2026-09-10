@@ -36,24 +36,25 @@ export function SignIn() {
   return (
     <div className="auth-layout">
       <section className="auth-intro" aria-labelledby="signin-heading">
-        <p className="eyebrow">Attendee access</p>
+        <p className="eyebrow">Attendee and organizer access</p>
         <h1 id="signin-heading">Sign in</h1>
         <p className="lede">
           Keep your event plans, booking references, and confirmation details in one place.
         </p>
         <ul className="feature-list">
           <li>Browse published events without creating an account.</li>
-          <li>Use a seeded demo account to complete a simulated booking.</li>
+          <li>Use a seeded attendee or organizer account to explore the product.</li>
           <li>Return to your confirmed booking whenever you need it.</li>
         </ul>
       </section>
       <section className="surface auth-card" aria-label="Sign-in form">
-        <aside className="notice" aria-labelledby="demo-accounts-heading">
-          <strong id="demo-accounts-heading">Demo accounts</strong>
-          <p>Use a seeded attendee account from the versioned test-data guide to explore the attendee journey.</p>
+        <aside className="notice" aria-labelledby="demo-credentials-heading">
+          <strong id="demo-credentials-heading">Demo credentials</strong>
+          <p>Use a seeded account to explore the attendee or organizer journey:</p>
           <ul>
-            <li><code>alex.attendee@example.test</code></li>
-            <li><code>maya.attendee@example.test</code></li>
+            <li><code>alex.attendee@example.test</code> · attendee_alex</li>
+            <li><code>maya.attendee@example.test</code> · attendee_maya</li>
+            <li><code>raka.organizer@example.test</code> · organizer_raka</li>
           </ul>
           <p className="form-note">Use the documented seeded password from the QA test-data guide.</p>
         </aside>

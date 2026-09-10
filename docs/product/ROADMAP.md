@@ -14,7 +14,7 @@ Deliver isolated workspaces, seeded sign-in, event discovery, ticket selection, 
 
 ## R2 — Organizer lifecycle
 
-Introduce organizer identity and authorization, event drafts, venue and session management, ticket types, publication review, capacity editing, and change history.
+Introduce organizer identity and authorization, event drafts, venue and session management, ticket types, publication review, capacity editing, and change history. Issue #69 delivers the first vertical slice: seeded organizer access, room capacity, ticket configuration, and publish validation.
 
 Potential testing themes:
 

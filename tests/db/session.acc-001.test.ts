@@ -15,6 +15,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 function migratedDb(): DatabaseSync {
   const db = new DatabaseSync(":memory:");
   applyMigration(db, readFileSync(path.join(root, "db/migrations/0001_init.sql"), "utf8"));
+  applyMigration(db, readFileSync(path.join(root, "db/migrations/0004_organizer_management.sql"), "utf8"));
   return db;
 }
 

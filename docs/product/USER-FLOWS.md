@@ -132,3 +132,24 @@ Alternate outcomes:
 - A transient failure leaves a retry/refresh path and does not expose raw storage details.
 
 Requirements: `BKG-006`, `BKG-007`, `NFR-010`
+
+## UF-008 — Configure and publish an event
+
+**Actor:** Authenticated organizer
+**Outcome:** A workspace-scoped event is saved as a draft or published after its room, session, capacity, and ticket configuration pass server validation.
+
+1. The organizer opens the organizer workspace and selects an existing event or starts a new draft.
+2. The organizer chooses a workspace venue/room and sets one or more session times and room capacities.
+3. The organizer adds ticket types with authoritative integer IDR prices.
+4. The organizer saves a draft; draft content remains absent from public attendee discovery.
+5. The organizer requests publication.
+6. The server validates the venue, future non-overlapping sessions, capacity, sales window, and ticket list, then atomically persists the nested configuration.
+7. Attendee event discovery reflects the published event and its configured room, capacity, sessions, and tickets.
+
+Alternate outcomes:
+
+- Missing or foreign workspace IDs are rejected without revealing another workspace.
+- An attendee or unauthenticated caller cannot read or mutate the organizer surface.
+- Invalid publication keeps the draft unchanged and shows a retryable error.
+
+Requirements: `ORG-001`, `ORG-002`, `ORG-003`, `NFR-011`

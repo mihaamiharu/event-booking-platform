@@ -4,6 +4,12 @@
 
 This list is the durable fallback and ordering source for GitHub issues. GitHub issue bodies should link to the relevant versioned documents rather than duplicate their complete contents.
 
+## Security and maintenance
+
+### [#65 — Remove seeded passwords from shipped client bundle](https://github.com/mihaamiharu/event-booking-platform/issues/65)
+
+Close the NFR-006/ACC-001 credential-redaction regression by keeping seeded passwords in the versioned test-data/server-test allowlist only, adding browser evidence that the sign-in UI does not render them, and aligning product/security/testing documentation.
+
 ## Product-discovery review
 
 ### [#1 — Review the R1 product-discovery package](https://github.com/mihaamiharu/event-booking-platform/issues/1)

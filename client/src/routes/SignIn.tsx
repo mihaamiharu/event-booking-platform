@@ -107,7 +107,7 @@ export function SignIn() {
           </button>
         </form>
         <p id="signin-help" className="form-note">
-          Demo accounts are workspace-scoped public data: alex.attendee@example.test and maya.attendee@example.test.
+          Demo account emails are workspace-scoped public data. Passwords remain in the versioned test-data guide and are never bundled into this public client.
         </p>
       </section>
     </div>

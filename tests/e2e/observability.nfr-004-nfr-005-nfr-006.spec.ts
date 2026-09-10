@@ -11,7 +11,7 @@ test("nfr-004/nfr-005/nfr-006 cockpit traces safe request evidence", async ({ pa
 
   await expect(page.getByText("Health", { exact: true })).toBeVisible();
   await expect(page.getByText("Event discovery", { exact: true })).toBeVisible();
-  await expect(page.getByText("Sign in", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Trace timeline").getByText("Sign in", { exact: true })).toBeVisible();
   await expect(page.getByText("Payment decline", { exact: true })).toBeVisible();
   await expect(page.locator("dd").filter({ hasText: "PAYMENT_DECLINED" })).toBeVisible();
   await expect(page.getByText("Correlation ID", { exact: true }).first()).toBeVisible();

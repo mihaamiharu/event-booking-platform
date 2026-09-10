@@ -5,6 +5,8 @@ import { expect, test } from "@playwright/test";
 test("acc-001 sign-in: success shows attendee menu, sign-out restores it", async ({ page }) => {
   await page.goto("/sign-in");
   await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
+  await expect(page.getByText("Attend123!", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Booked123!", { exact: true })).toHaveCount(0);
 
   await page.getByLabel("Email").fill("alex.attendee@example.test");
   await page.getByLabel("Password").fill("Attend123!");

@@ -21,7 +21,7 @@ Each provision or reset stores one `seed_reference_at` instant called `T0`.
 | `attendee_alex` | `alex.attendee@example.test` | `Attend123!` | No booking history |
 | `attendee_maya` | `maya.attendee@example.test` | `Booked123!` | One confirmed, cancellable booking for two General tickets |
 
-Credentials are intentionally public demo data and valid only inside the active learner workspace. Passwords must still be hashed at rest.
+Credentials are intentionally public demo data and valid only inside the active learner workspace. This table is documentation-only test data: seeded passwords must not be copied into client source or built assets. Passwords must still be hashed at rest.
 
 ## Non-interactive fixture identity
 

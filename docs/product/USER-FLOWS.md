@@ -28,7 +28,7 @@ Requirements: `WSP-001`, `WSP-002`, `WSP-003`, `WSP-004`
 **Outcome:** A valid attendee session is established.
 
 1. The attendee opens sign-in.
-2. The attendee enters the documented seeded credentials.
+2. The attendee enters the documented seeded credentials from the versioned test-data guide; the public sign-in page identifies the demo accounts but does not display their passwords.
 3. The platform verifies the credential within the active workspace.
 4. The platform establishes an HTTP-only session.
 5. The attendee is returned to the product without losing their intended destination.

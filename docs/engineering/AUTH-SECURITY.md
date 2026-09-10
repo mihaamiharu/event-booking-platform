@@ -26,6 +26,7 @@ Rules 1–2 of ROLES-AND-PERMISSIONS are structural: no endpoint reads identity 
 ## 3. Seeded attendee authentication and sessions
 
 - Credentials are public demo data valid only inside their workspace (PD-002); identical emails across workspaces are distinct users via `(workspace_id, email)`.
+- The public client may identify seeded accounts by their reserved `.test` email addresses, but seeded password literals remain documentation-only test data. They must not appear under `client/` or in built client assets; the redaction gate enforces this NFR-006 boundary.
 - Sign-in: look up `(workspace_id, email)`, verify with WebCrypto PBKDF2-SHA256 (salt per user, random per workspace at provision; identical passwords hash differently — allowed, since NFR-007 requires identical logical state, not identical hash bytes), then insert a `sessions` row and set `ebp_session`. Wrong email and wrong password return the identical `AUTH_INVALID_CREDENTIALS` (401) after identical work (no enumeration oracle, no timing shortcut).
 - Session token: 256-bit `crypto.getRandomValues`, stored as SHA-256 hash (`token_hash` PK) — a database read never yields a usable token. Cookie: `HttpOnly; Secure (production); SameSite=Lax; Path=/api; Max-Age=604800`. Lifetime 7 days absolute, sliding on use, capped by workspace expiry; sign-out sets `revoked_at` and clears the cookie (repeat sign-out still 204).
 - No registration, recovery, or role elevation exists in R1; any such parameter is ignored, never an error that reveals internals.

@@ -222,7 +222,7 @@ Material product behavior, API operations, data entities, tests, and defects sha
 
 ### NFR-006 — Privacy-preserving demo data
 
-R1 shall not require a visitor to provide real personal or financial information. Seeded identities use reserved `.test` email addresses, and operational logs avoid credentials, session tokens, payment simulation values, and direct personal identifiers.
+R1 shall not require a visitor to provide real personal or financial information. Seeded identities use reserved `.test` email addresses, and operational logs avoid credentials, session tokens, payment simulation values, and direct personal identifiers. The public client may identify the seeded demo accounts by email, but it shall not render or bundle their passwords; the versioned test-data document is the source for test-only credential values.
 
 ### NFR-007 — Deterministic workspace behavior
 
